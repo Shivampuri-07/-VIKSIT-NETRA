@@ -1,0 +1,14 @@
+{
+ "id": "six_epoch_experiment",
+ "status": "NOT RUN - requires the labelled dataset and PyTorch; this file only fixes the protocol in advance",
+ "hypothesis": "Training 6 epochs (vs 3 for the baseline) changes held-out test performance. No improvement is assumed.",
+ "command": "python ml/training/train.py --epochs 6 --run-name six_epoch_experiment --normalization scene --early-stopping-patience 2 --augment --seed 42",
+ "preconditions": [
+  "python ml/training/train.py --dry-run passes (layout, CSVs, no train/val source-scene leakage)",
+  "baseline re-evaluated with ml/evaluation/protocol.py on the 7 test scenes (normalization and threshold recorded)"
+ ],
+ "controls": {"seed": 42, "same_data_split_as_baseline": true, "output": "ml/checkpoints/candidates/<run>/ (guarded; never the production checkpoint)"},
+ "report": ["Dice", "IoU", "precision", "recall", "pixel false-positive rate", "false-alarm scenes", "ECE", "Brier", "per-scene table"],
+ "acceptance_rule": "Promote only if pooled AND macro Dice improve over the re-evaluated baseline, with no increase in false-alarm scenes and no worse calibration; otherwise the baseline stays. Never automatic.",
+ "note": "Normalization 'scene' makes training match evaluation/inference preprocessing; the baseline was trained with 'patch', so both settings should be tried if compute allows."
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Sentinel-1 Oil Spill Detection & Vessel Attribution System",
+  "description": "Satellite SAR oil spill segmentation, Lagrangian particle drift backtracking, AIS trajectory reconstruction, and explainable candidate vessel attribution decision support system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

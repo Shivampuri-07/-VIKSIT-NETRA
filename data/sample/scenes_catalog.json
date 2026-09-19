@@ -1,0 +1,225 @@
+[
+  {
+    "scene_id": "S1A_IW_GRDH_1SDV_20260828T061422_GOM_MISSISSIPPI",
+    "name": "Gulf of Mexico - Mississippi Canyon",
+    "region": "Gulf of Mexico (US EEZ)",
+    "acquisition_time": "2026-08-28T06:14:22Z",
+    "satellite": "Sentinel-1A C-SAR",
+    "polarization": "VV+VH",
+    "bbox": [
+      -88.65,
+      28.5,
+      -88.15,
+      28.95
+    ],
+    "center_lat": 28.725,
+    "center_lon": -88.4,
+    "environmental": {
+      "current_uo_ms": 0.28,
+      "current_vo_ms": -0.18,
+      "wind_u10_ms": 5.2,
+      "wind_v10_ms": -3.8,
+      "wave_height_m": 1.2,
+      "sea_temp_c": 28.4
+    },
+    "spill_ground_truth": {
+      "synthetic_center_lat": 28.718,
+      "synthetic_center_lon": -88.385,
+      "estimated_age_hours": 10.5
+    },
+    "ais_vessels": [
+      {
+        "mmsi": "352001849",
+        "vessel_name": "PACIFIC GLORY",
+        "vessel_type": "Crude Oil Tanker (Aframax)",
+        "imo": "9482711",
+        "flag": "Panama",
+        "length": 245.0,
+        "cpa_offset_hours": 0.2,
+        "cpa_lat": 28.665,
+        "cpa_lon": -88.465,
+        "speed_knots": 11.4,
+        "course_deg": 128.0
+      },
+      {
+        "mmsi": "636019882",
+        "vessel_name": "NORDIC STAR",
+        "vessel_type": "Chemical / Oil Products Tanker",
+        "imo": "9615542",
+        "flag": "Liberia",
+        "length": 183.0,
+        "cpa_offset_hours": 2.8,
+        "cpa_lat": 28.692,
+        "cpa_lon": -88.432,
+        "speed_knots": 13.8,
+        "course_deg": 132.0
+      },
+      {
+        "mmsi": "311000924",
+        "vessel_name": "CMA CGM DELTA",
+        "vessel_type": "Container Ship (Post-Panamax)",
+        "imo": "9728819",
+        "flag": "Bahamas",
+        "length": 335.0,
+        "cpa_offset_hours": 6.5,
+        "cpa_lat": 28.61,
+        "cpa_lon": -88.52,
+        "speed_knots": 18.2,
+        "course_deg": 125.0
+      },
+      {
+        "mmsi": "367412980",
+        "vessel_name": "OCEAN EXPLORER II",
+        "vessel_type": "Offshore Supply / Tug",
+        "imo": "9812450",
+        "flag": "USA",
+        "length": 88.0,
+        "cpa_offset_hours": 1.1,
+        "cpa_lat": 28.79,
+        "cpa_lon": -88.31,
+        "speed_knots": 8.5,
+        "course_deg": 310.0
+      },
+      {
+        "mmsi": "244670000",
+        "vessel_name": "SEA HARVESTER",
+        "vessel_type": "Commercial Fishing Vessel",
+        "imo": "8912773",
+        "flag": "Netherlands",
+        "length": 42.0,
+        "cpa_offset_hours": 8.0,
+        "cpa_lat": 28.53,
+        "cpa_lon": -88.6,
+        "speed_knots": 4.2,
+        "course_deg": 85.0
+      }
+    ]
+  },
+  {
+    "scene_id": "S1B_IW_GRDH_1SDV_20260827T174210_NORTH_SEA_BRENT",
+    "name": "North Sea - Brent Oil Field / Fair Isle Channel",
+    "region": "North Sea (UK/Norwegian Continental Shelf)",
+    "acquisition_time": "2026-08-27T17:42:10Z",
+    "satellite": "Sentinel-1B C-SAR",
+    "polarization": "VV+VH",
+    "bbox": [
+      1.4,
+      60.8,
+      2.1,
+      61.35
+    ],
+    "center_lat": 61.075,
+    "center_lon": 1.75,
+    "environmental": {
+      "current_uo_ms": 0.35,
+      "current_vo_ms": 0.22,
+      "wind_u10_ms": 7.8,
+      "wind_v10_ms": 4.5,
+      "wave_height_m": 2.4,
+      "sea_temp_c": 12.1
+    },
+    "spill_ground_truth": {
+      "synthetic_center_lat": 61.082,
+      "synthetic_center_lon": 1.765,
+      "estimated_age_hours": 8.0
+    },
+    "ais_vessels": [
+      {
+        "mmsi": "257002340",
+        "vessel_name": "BERGE BRENT",
+        "vessel_type": "Crude Oil Shuttle Tanker",
+        "imo": "9552190",
+        "flag": "Norway",
+        "length": 278.0,
+        "cpa_offset_hours": 0.4,
+        "cpa_lat": 61.02,
+        "cpa_lon": 1.68,
+        "speed_knots": 10.2,
+        "course_deg": 45.0
+      },
+      {
+        "mmsi": "211448000",
+        "vessel_name": "ELBE HIGHWAY",
+        "vessel_type": "Vehicles Carrier / Ro-Ro",
+        "imo": "9316309",
+        "flag": "Germany",
+        "length": 148.0,
+        "cpa_offset_hours": 3.2,
+        "cpa_lat": 61.12,
+        "cpa_lon": 1.84,
+        "speed_knots": 15.6,
+        "course_deg": 50.0
+      },
+      {
+        "mmsi": "235089220",
+        "vessel_name": "NORTHERN SOVEREIGN",
+        "vessel_type": "Platform Supply Vessel (PSV)",
+        "imo": "9641120",
+        "flag": "United Kingdom",
+        "length": 86.0,
+        "cpa_offset_hours": 1.2,
+        "cpa_lat": 61.045,
+        "cpa_lon": 1.71,
+        "speed_knots": 9.0,
+        "course_deg": 220.0
+      }
+    ]
+  },
+  {
+    "scene_id": "S1A_IW_GRDH_1SDV_20260826T225514_SINGAPORE_STRAIT",
+    "name": "Singapore Strait - Eastern TSS Corridor",
+    "region": "Southeast Asia (Malacca/Singapore Chokepoint)",
+    "acquisition_time": "2026-08-26T22:55:14Z",
+    "satellite": "Sentinel-1A C-SAR",
+    "polarization": "VV",
+    "bbox": [
+      104.1,
+      1.2,
+      104.55,
+      1.45
+    ],
+    "center_lat": 1.325,
+    "center_lon": 104.325,
+    "environmental": {
+      "current_uo_ms": -0.45,
+      "current_vo_ms": -0.1,
+      "wind_u10_ms": -3.5,
+      "wind_v10_ms": -2.0,
+      "wave_height_m": 0.6,
+      "sea_temp_c": 29.8
+    },
+    "spill_ground_truth": {
+      "synthetic_center_lat": 1.315,
+      "synthetic_center_lon": 104.31,
+      "estimated_age_hours": 6.0
+    },
+    "ais_vessels": [
+      {
+        "mmsi": "563004820",
+        "vessel_name": "OCEAN HARMONY",
+        "vessel_type": "Bunker Tanker / Oil Barging",
+        "imo": "9742211",
+        "flag": "Singapore",
+        "length": 115.0,
+        "cpa_offset_hours": 0.3,
+        "cpa_lat": 1.34,
+        "cpa_lon": 104.36,
+        "speed_knots": 8.1,
+        "course_deg": 245.0
+      },
+      {
+        "mmsi": "477299100",
+        "vessel_name": "ORIENTAL PEARL",
+        "vessel_type": "Container Ship (Ultra Large)",
+        "imo": "9811002",
+        "flag": "Hong Kong",
+        "length": 399.0,
+        "cpa_offset_hours": 1.5,
+        "cpa_lat": 1.32,
+        "cpa_lon": 104.33,
+        "speed_knots": 14.5,
+        "course_deg": 248.0
+      }
+    ]
+  }
+]

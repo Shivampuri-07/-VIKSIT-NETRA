@@ -1,0 +1,229 @@
+{
+ "schema": "aegis.model_registry.v1",
+ "updated": "2026-09-19",
+ "policy": "The production model changes only when a candidate beats the production baseline on the SAME held-out test scenes (mean Dice and false-positive rate), with calibration reported. Candidates are written to ml/checkpoints/candidates/ and never overwrite the baseline.",
+ "models": [
+  {
+   "name": "unet_oil_spill_best",
+   "version": "1.0.0",
+   "role": "production-baseline",
+   "task": "binary SAR oil-spill segmentation",
+   "architecture": "SAROilSpillUNet (ml/models/unet.py): 4-level U-Net, 32-64-128-256-256 channels, bilinear upsampling, 1-channel VV input, sigmoid output",
+   "checkpoint": {
+    "path": "ml/checkpoints/unet_oil_spill_best.pth",
+    "epoch": 3,
+    "tensors": 110,
+    "metadata_source": "read from the checkpoint dict (keys epoch, val_dice, val_iou, val_precision, val_recall)",
+    "sha256": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+    "size_bytes": 17329363
+   },
+   "training_data": {
+    "dataset": "Sentinel-1 oil-spill segmentation dataset, Zenodo 10.5281/zenodo.4672426",
+    "train_csv": "dataframe_train_dataset_256_90.csv",
+    "val_csv": "dataframe_val_dataset_256_90.csv",
+    "patch_size": 256,
+    "present_in_repository": false,
+    "note": "ml/datasets/radar_data/Radar_data is empty in the delivered repository; training cannot be reproduced without it."
+   },
+   "hyperparameters": {
+    "loss": "0.6 Dice + 0.4 BCE",
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 4,
+    "epochs_run": 3,
+    "scheduler": null,
+    "augmentation": null,
+    "early_stopping": null,
+    "note": "Taken from ml/training/train.py; epochs_run from the checkpoint. Whether the checkpoint was produced by exactly this script version cannot be verified (the training data and logs are not in the repository)."
+   },
+   "validation_metrics": {
+    "dice": 0.6844975520439229,
+    "iou": 0.6060020662617319,
+    "precision": 0.756531527110812,
+    "recall": 0.791476498442805,
+    "aggregation": "mean of per-batch metrics"
+   },
+   "test_metrics": {
+    "mean_dice": 0.46495079007160595,
+    "mean_iou": 0.3468979846171723,
+    "mean_precision": 0.4597918524644224,
+    "mean_recall": 0.593884919631722,
+    "n_scenes": 7,
+    "per_scene": {
+     "2018_09_26.tif": {
+      "dice": 0.8484739857492254,
+      "iou": 0.7368257210422414,
+      "precision": 0.7650425574946599,
+      "recall": 0.9523299725885354
+     },
+     "2018_12_19_d.tif": {
+      "dice": 0.014585061266644562,
+      "iou": 0.007346102309449461,
+      "precision": 0.10557317625712376,
+      "recall": 0.007833644325649666
+     },
+     "2018_12_19_e.tif": {
+      "dice": 0.18449530477668283,
+      "iou": 0.10162204772155044,
+      "precision": 0.1041099804937411,
+      "recall": 0.8096135265698529
+     },
+     "2018_12_19_f_.tif": {
+      "dice": 0.2936437226178201,
+      "iou": 0.17208816617612588,
+      "precision": 0.2013668805636999,
+      "recall": 0.542030429437142
+     },
+     "20191015.tif": {
+      "dice": 0.5687242995218135,
+      "iou": 0.39735482082997964,
+      "precision": 0.507672242921137,
+      "recall": 0.6464677360884392
+     },
+     "20200224_b.tif": {
+      "dice": 0.6823146754696002,
+      "iou": 0.5178130641416723,
+      "precision": 0.7498999599837936,
+      "recall": 0.6259045668097736
+     },
+     "20200319b.tif": {
+      "dice": 0.662418481099455,
+      "iou": 0.49523597009918663,
+      "precision": 0.784878169536802,
+      "recall": 0.5730145616026612
+     }
+    },
+    "source": "ml/results/test_metrics.json (ml/inference/test_model.py, full-scene tiled inference)"
+   },
+   "calibration": null,
+   "false_positive_rate": null,
+   "false_negative_rate": null,
+   "inference_time": null,
+   "known_limitations": [
+    "Large between-scene variance on the test set (Dice 0.015 to 0.848).",
+    "Inference on a 2025 Copernicus Sentinel-1 scene (data/sentinel1/INFERENCE_REPORT.md) and on 462 tiles in data/sentinel1/event_predictions produced no detections: possible domain shift between the dataset's preprocessing and live sigma0 dB inputs.",
+    "No look-alike discrimination: low-wind areas and biogenic films are not modelled.",
+    "Calibration of output probabilities has not been measured.",
+    "Train/validation patches may come from the same scenes (validation leakage) - cannot be checked without the dataset CSVs; run `python ml/training/train.py --dry-run` once the data is present.",
+    "Training preprocessing (per-patch z-score) differs from evaluation/inference preprocessing (whole-scene z-score)."
+   ],
+   "evaluation_protocol": {
+    "script": "ml/inference/test_model.py",
+    "threshold": 0.5,
+    "input_normalisation": "whole-scene z-score (finite pixels)",
+    "tiling": "256 px, stride 256, no overlap; uncovered right/bottom strips scored as negative",
+    "aggregation": "per-scene metrics, unweighted mean over 7 scenes",
+    "frozen_record": "ml/baseline/BASELINE_v1.json"
+   },
+   "training_preprocessing": "per-256px-patch z-score (ml/datasets/dataset.py); DIFFERS from the evaluation normalisation",
+   "inference_paths": {
+    "ml/inference/segmenter.py": "default threshold 0.48 (FastAPI backend live inference)",
+    "ml/inference/real_scene_inference.py": "whole-image z-score, 256 px tiles with 32 px overlap, reflect padding, overlap mean"
+   },
+   "verification": {
+    "tool": "ml/verification/verify_baseline.py --reproduce",
+    "result": "Independent NumPy re-implementation reproduces the stored PyTorch output data/sentinel1/copernicus_oil_probability.tif to max |diff| 8.8e-8 (float32 precision)",
+    "real_2025_scene_behaviour": "max probability 0.0377, 0 pixels >= 0.5 on copernicus_sigma0_test.tif (valid sigma0 dB input, -50.6..-11.8 dB)"
+   }
+  }
+ ],
+ "candidates": {
+  "output_root": "ml/checkpoints/candidates/",
+  "guard": "ml/training/run_guard.py (training cannot write the production checkpoint)",
+  "rule": "A candidate (e.g. a 6-epoch run) is an experiment. It is recorded here only after test-scene evaluation with the SAME protocol, and replaces the baseline only if it improves mean Dice without worse false positives.",
+  "evaluated": [
+   {
+    "name": "six_epoch_experiment",
+    "status": "EVALUATED - NOT PROMOTED",
+    "checkpoint": "ml/checkpoints/candidates/20260919T132055Z_six_epoch_experiment/candidate_best.pth",
+    "checkpoint_sha256": "0b7d86cf095e0f3b1f170a09ae46c3ca25a2df882498227e3624507179659587",
+    "protocol": "ml/experiments/six_epoch_protocol.json (seed 42, scene normalisation, augmentation, early-stopping patience 2)",
+    "epochs_run": 6,
+    "best_epoch": 6,
+    "train_duration_seconds": 12796.5,
+    "validation": {
+     "best_val_dice": 0.5708956500001835,
+     "independent": false,
+     "caveat": "validation patches come from the same source scenes as training patches"
+    },
+    "test_scene_results_file": "ml/results/eval_candidate_six_epoch.json",
+    "decision_file": "ml/results/comparison_candidate_vs_baseline.json",
+    "decision": "KEEP_BASELINE",
+    "promoted": false,
+    "criteria": [
+     {
+      "criterion": "pooled_dice",
+      "rule": "candidate > baseline",
+      "baseline": 0.47312022848240065,
+      "candidate": 0.42493421515658186,
+      "passed": false
+     },
+     {
+      "criterion": "macro_dice",
+      "rule": "candidate > baseline",
+      "baseline": 0.4587952938267627,
+      "candidate": 0.5519879245436415,
+      "passed": true
+     },
+     {
+      "criterion": "false_alarm_scenes",
+      "rule": "candidate <= baseline",
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "passed": true
+     },
+     {
+      "criterion": "calibration_ece",
+      "rule": "candidate <= baseline (no worse)",
+      "baseline": 0.03890543524056572,
+      "candidate": 0.09281975861344778,
+      "passed": false
+     },
+     {
+      "criterion": "calibration_brier",
+      "rule": "candidate <= baseline (no worse)",
+      "baseline": 0.03900027428246508,
+      "candidate": 0.09054858550527858,
+      "passed": false
+     }
+    ],
+    "scenes_improved": "6 of 7",
+    "summary": "Higher macro Dice and better on 6 of 7 scenes, but more false positives (pixel FPR 0.097 vs 0.036 macro), lower pooled Dice and clearly worse calibration; the pre-registered rule requires all criteria, so the frozen baseline stays."
+   }
+  ]
+ },
+ "fresh_evaluations": {
+  "note": "Measured in this project with ml/evaluation/run_eval.py on the 7 held-out scenes. The stored historical metrics in models[].test_metrics and ml/baseline/BASELINE_v1.json are retained unchanged; the fresh historic-protocol run reproduces them exactly (max |diff| 0.0).",
+  "baseline": {
+   "file": "ml/results/eval_baseline.json",
+   "checkpoint_sha256": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+   "historic_protocol_macro": {
+    "dice": 0.46495079007160595,
+    "iou": 0.3468979846171723,
+    "precision": 0.4597918524644224,
+    "recall": 0.593884919631722,
+    "pixel_false_positive_rate": 0.03543970458420726
+   },
+   "scene_overlap_protocol_macro": {
+    "dice": 0.4587952938267627,
+    "iou": 0.3392992499660849,
+    "precision": 0.44009510054504136,
+    "recall": 0.5952767150972406,
+    "pixel_false_positive_rate": 0.035645813396511884
+   },
+   "scene_overlap_protocol_pooled": {
+    "dice": 0.47312022848240065,
+    "iou": 0.3098608268365204,
+    "precision": 0.3610102249632449,
+    "recall": 0.6862237370787577,
+    "pixel_false_positive_rate": 0.041514516889426784
+   },
+   "scene_overlap_calibration": {
+    "ece": 0.03890543524056572,
+    "brier": 0.03900027428246508
+   },
+   "leakage": "validation is leaky (all 14 source scenes appear in both train and validation CSVs); test scenes share no files with training but their footprints overlap training scenes on other dates (see eval_baseline.json)"
+  }
+ }
+}

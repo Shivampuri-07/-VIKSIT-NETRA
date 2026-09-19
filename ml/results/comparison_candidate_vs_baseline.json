@@ -1,0 +1,122 @@
+{
+  "schema": "aegis.candidate_decision.v1",
+  "created_utc": "2026-09-19T16:55:50Z",
+  "rule_source": "ml/experiments/six_epoch_protocol.json (acceptance_rule)",
+  "decision_protocol": "scene_overlap_protocol",
+  "criteria": [
+    {
+      "criterion": "pooled_dice",
+      "rule": "candidate > baseline",
+      "baseline": 0.47312022848240065,
+      "candidate": 0.42493421515658186,
+      "passed": false
+    },
+    {
+      "criterion": "macro_dice",
+      "rule": "candidate > baseline",
+      "baseline": 0.4587952938267627,
+      "candidate": 0.5519879245436415,
+      "passed": true
+    },
+    {
+      "criterion": "false_alarm_scenes",
+      "rule": "candidate <= baseline",
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "passed": true
+    },
+    {
+      "criterion": "calibration_ece",
+      "rule": "candidate <= baseline (no worse)",
+      "baseline": 0.03890543524056572,
+      "candidate": 0.09281975861344778,
+      "passed": false
+    },
+    {
+      "criterion": "calibration_brier",
+      "rule": "candidate <= baseline (no worse)",
+      "baseline": 0.03900027428246508,
+      "candidate": 0.09054858550527858,
+      "passed": false
+    }
+  ],
+  "all_criteria_passed": false,
+  "decision": "KEEP_BASELINE",
+  "promoted": false,
+  "promotion_note": "This script never promotes. If PROMOTE_RECOMMENDED, a human must review this record and act deliberately; the frozen checkpoint is never overwritten automatically.",
+  "per_scene_dice": [
+    {
+      "scene": "2018_09_26.tif",
+      "baseline_dice": 0.8434147531040453,
+      "candidate_dice": 0.908223005863668,
+      "delta": 0.06480825275962265
+    },
+    {
+      "scene": "2018_12_19_d.tif",
+      "baseline_dice": 0.0018462597593603518,
+      "candidate_dice": 0.0886436021105619,
+      "delta": 0.08679734235120154
+    },
+    {
+      "scene": "2018_12_19_e.tif",
+      "baseline_dice": 0.18368041265399024,
+      "candidate_dice": 0.4716066162159278,
+      "delta": 0.28792620356193754
+    },
+    {
+      "scene": "2018_12_19_f_.tif",
+      "baseline_dice": 0.3236072783449924,
+      "candidate_dice": 0.34758644608090206,
+      "delta": 0.023979167735909634
+    },
+    {
+      "scene": "20191015.tif",
+      "baseline_dice": 0.5642602500037812,
+      "candidate_dice": 0.5548846206991842,
+      "delta": -0.00937562930459701
+    },
+    {
+      "scene": "20200224_b.tif",
+      "baseline_dice": 0.6290192597437411,
+      "candidate_dice": 0.7313605554637029,
+      "delta": 0.10234129571996187
+    },
+    {
+      "scene": "20200319b.tif",
+      "baseline_dice": 0.6657388431774285,
+      "candidate_dice": 0.7616106253715434,
+      "delta": 0.09587178219411496
+    }
+  ],
+  "scenes_improved": "6 of 7",
+  "protocols_side_by_side": {
+    "historic_protocol": {
+      "baseline_macro_dice": 0.46495079007160595,
+      "candidate_macro_dice": 0.5462327067242434,
+      "baseline_pooled_dice": 0.4635646652721211,
+      "candidate_pooled_dice": 0.42076586399911814,
+      "baseline_macro_fpr": 0.03543970458420726,
+      "candidate_macro_fpr": 0.08914611751190867
+    },
+    "scene_overlap_protocol": {
+      "baseline_macro_dice": 0.4587952938267627,
+      "candidate_macro_dice": 0.5519879245436415,
+      "baseline_pooled_dice": 0.47312022848240065,
+      "candidate_pooled_dice": 0.42493421515658186,
+      "baseline_macro_fpr": 0.035645813396511884,
+      "candidate_macro_fpr": 0.09696756969243113
+    },
+    "patch_overlap_protocol": {
+      "baseline_macro_dice": 0.46916128556850384,
+      "candidate_macro_dice": 0.45514328762311484,
+      "baseline_pooled_dice": 0.3662096424807009,
+      "candidate_pooled_dice": 0.38993343053076934,
+      "baseline_macro_fpr": 0.010305311025508726,
+      "candidate_macro_fpr": 0.02513924652898322
+    }
+  },
+  "statistical_caveat": "7 held-out scenes with large between-scene spread (SD of per-scene Dice about 0.3): differences are descriptive; no significance is claimed.",
+  "baseline_checkpoint_sha256": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "candidate_checkpoint_sha256": "0b7d86cf095e0f3b1f170a09ae46c3ca25a2df882498227e3624507179659587",
+  "baseline_unchanged_at_end_of_both_evaluations": true
+}

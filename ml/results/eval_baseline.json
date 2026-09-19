@@ -1,0 +1,1036 @@
+{
+  "schema": "aegis.checkpoint_evaluation.v1",
+  "label": "baseline",
+  "created_utc": "2026-09-19T13:18:55Z",
+  "checkpoint": {
+    "path": "ml/checkpoints/unet_oil_spill_best.pth",
+    "sha256": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+    "size_bytes": 17329363,
+    "metadata_in_file": {
+      "epoch": 3,
+      "val_dice": 0.6844975520439229,
+      "val_iou": 0.6060020662617319,
+      "val_precision": 0.756531527110812,
+      "val_recall": 0.791476498442805
+    },
+    "sha256_after": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+    "unchanged": true
+  },
+  "frozen_baseline_sha256_at_start": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "environment": {
+    "device": "mps",
+    "torch": "2.8.0",
+    "numpy": "2.0.2"
+  },
+  "dataset": {
+    "root": "ml",
+    "note": "root recorded without the user's home path",
+    "split": "test",
+    "scene_ids": [
+      "2018_09_26.tif",
+      "2018_12_19_d.tif",
+      "2018_12_19_e.tif",
+      "2018_12_19_f_.tif",
+      "20191015.tif",
+      "20200224_b.tif",
+      "20200319b.tif"
+    ],
+    "n_scenes": 7,
+    "crs": "EPSG:32616",
+    "pixel_size_m": 10.0
+  },
+  "threshold": 0.5,
+  "ground_truth": "REFERENCE_LABEL masks of the labelled dataset (Zenodo 10.5281/zenodo.4672426); evaluation only",
+  "historic_protocol": {
+    "description": "whole-scene z-score, 256 px tiles stride 256, remainder strips scored as 'no oil' (replicates ml/inference/test_model.py)",
+    "macro_mean": {
+      "dice": 0.46495079007160595,
+      "iou": 0.3468979846171723,
+      "precision": 0.4597918524644224,
+      "recall": 0.593884919631722,
+      "pixel_false_positive_rate": 0.03543970458420726
+    },
+    "pooled": {
+      "tp": 1097516,
+      "fp": 1990505,
+      "fn": 549578,
+      "tn": 46199674,
+      "dice": 0.4635646652721211,
+      "iou": 0.3017144000754343,
+      "precision": 0.3554107954576733,
+      "recall": 0.6663347689931476,
+      "pixel_false_positive_rate": 0.0413052003811814
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 404745,
+        "fp": 124304,
+        "fn": 20260,
+        "tn": 12437756,
+        "dice": 0.8484739857492254,
+        "iou": 0.7368257210422414,
+        "precision": 0.7650425574946599,
+        "recall": 0.9523299725885354,
+        "pixel_false_positive_rate": 0.009895192349025557
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 466,
+        "fp": 3948,
+        "fn": 59021,
+        "tn": 2548005,
+        "dice": 0.014585061266644562,
+        "iou": 0.007346102309449461,
+        "precision": 0.10557317625712376,
+        "recall": 0.007833644325649666,
+        "pixel_false_positive_rate": 0.0015470504354899947
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 33518,
+        "fp": 288430,
+        "fn": 7882,
+        "tn": 8647530,
+        "dice": 0.18449530477668283,
+        "iou": 0.10162204772155044,
+        "precision": 0.1041099804937411,
+        "recall": 0.8096135265698529,
+        "pixel_false_positive_rate": 0.03227744976477065
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 323158,
+        "fp": 1281664,
+        "fn": 273041,
+        "tn": 6422637,
+        "dice": 0.2936437226178201,
+        "iou": 0.17208816617612588,
+        "precision": 0.2013668805636999,
+        "recall": 0.542030429437142,
+        "pixel_false_positive_rate": 0.1663569478918334
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 285325,
+        "fp": 276701,
+        "fn": 156035,
+        "tn": 7781089,
+        "dice": 0.5687242995218135,
+        "iou": 0.39735482082997964,
+        "precision": 0.507672242921137,
+        "recall": 0.6464677360884392,
+        "pixel_false_positive_rate": 0.03433956457043432
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 28110,
+        "fp": 9375,
+        "fn": 16801,
+        "tn": 4372024,
+        "dice": 0.6823146754696002,
+        "iou": 0.5178130641416723,
+        "precision": 0.7498999599837936,
+        "recall": 0.6259045668097736,
+        "pixel_false_positive_rate": 0.0021397275162567935
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 22194,
+        "fp": 6083,
+        "fn": 16538,
+        "tn": 3990633,
+        "dice": 0.662418481099455,
+        "iou": 0.49523597009918663,
+        "precision": 0.784878169536802,
+        "recall": 0.5730145616026612,
+        "pixel_false_positive_rate": 0.0015219995616401062
+      }
+    ]
+  },
+  "scene_overlap_protocol": {
+    "protocol": {
+      "threshold": 0.5,
+      "normalization": "scene",
+      "tiling": "256 px, 32 px overlap, reflect-padded edges (full coverage)",
+      "false_alarm_definition": "scene without labelled oil but >= 50 predicted pixels"
+    },
+    "n_scenes": 7,
+    "pooled": {
+      "tp": 1130275,
+      "fp": 2000592,
+      "fn": 516819,
+      "tn": 46189587,
+      "dice": 0.47312022848240065,
+      "iou": 0.3098608268365204,
+      "precision": 0.3610102249632449,
+      "recall": 0.6862237370787577,
+      "pixel_false_positive_rate": 0.041514516889426784
+    },
+    "macro_mean": {
+      "dice": 0.4587952938267627,
+      "iou": 0.3392992499660849,
+      "precision": 0.44009510054504136,
+      "recall": 0.5952767150972406,
+      "pixel_false_positive_rate": 0.035645813396511884
+    },
+    "false_alarm_scenes": 0,
+    "scenes_without_oil": 0,
+    "calibration": {
+      "ece": 0.03890543524056572,
+      "brier": 0.03900027428246508,
+      "n_pixels": 1400000,
+      "bins": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "count": 1317699,
+          "mean_prob": 0.0008186961983763447,
+          "fraction_oil": 0.010422714140330986
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "count": 3558,
+          "mean_prob": 0.14517659378594533,
+          "fraction_oil": 0.2189432265317594
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.30000000000000004,
+          "count": 2210,
+          "mean_prob": 0.24761442939889916,
+          "fraction_oil": 0.23484162895927602
+        },
+        {
+          "lo": 0.30000000000000004,
+          "hi": 0.4,
+          "count": 1979,
+          "mean_prob": 0.350482641521158,
+          "fraction_oil": 0.23193532086912583
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "count": 2977,
+          "mean_prob": 0.4551576341423846,
+          "fraction_oil": 0.2220356063150823
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6000000000000001,
+          "count": 1978,
+          "mean_prob": 0.54745450100595,
+          "fraction_oil": 0.2633973710819009
+        },
+        {
+          "lo": 0.6000000000000001,
+          "hi": 0.7000000000000001,
+          "count": 2113,
+          "mean_prob": 0.654851592044045,
+          "fraction_oil": 0.31235210601041175
+        },
+        {
+          "lo": 0.7000000000000001,
+          "hi": 0.8,
+          "count": 4346,
+          "mean_prob": 0.7568978017999234,
+          "fraction_oil": 0.3232857800276116
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "count": 12663,
+          "mean_prob": 0.860102693084517,
+          "fraction_oil": 0.33230672036642184
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "count": 50477,
+          "mean_prob": 0.9601121469158698,
+          "fraction_oil": 0.3511302177229233
+        }
+      ]
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 404651,
+        "fp": 129898,
+        "fn": 20354,
+        "tn": 12432162,
+        "dice": 0.8434147531040453,
+        "iou": 0.7292283516218137,
+        "precision": 0.7569951491818322,
+        "recall": 0.9521087987200129,
+        "pixel_false_positive_rate": 0.01034050147826073
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 59,
+        "fp": 4367,
+        "fn": 59428,
+        "tn": 2547586,
+        "dice": 0.0018462597593603518,
+        "iou": 0.0009239828358442553,
+        "precision": 0.013330320831447506,
+        "recall": 0.0009918133373678117,
+        "pixel_false_positive_rate": 0.0017112384123061822
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 33473,
+        "fp": 289597,
+        "fn": 7927,
+        "tn": 8646363,
+        "dice": 0.18368041265399024,
+        "iou": 0.10112780478372886,
+        "precision": 0.10360912495743925,
+        "recall": 0.8085265700482898,
+        "pixel_false_positive_rate": 0.03240804569402727
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 363643,
+        "fp": 1287592,
+        "fn": 232556,
+        "tn": 6416709,
+        "dice": 0.3236072783449924,
+        "iou": 0.19303786885063143,
+        "precision": 0.22022486199723226,
+        "recall": 0.6099356087480847,
+        "pixel_false_positive_rate": 0.16712638823431222
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 279756,
+        "fp": 270469,
+        "fn": 161604,
+        "tn": 7787321,
+        "dice": 0.5642602500037812,
+        "iou": 0.39301011900329935,
+        "precision": 0.508439274842109,
+        "recall": 0.63384991843393,
+        "pixel_false_positive_rate": 0.0335661515130079
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 26928,
+        "fp": 13780,
+        "fn": 17983,
+        "tn": 4367619,
+        "dice": 0.6290192597437411,
+        "iou": 0.45880969825014983,
+        "precision": 0.6614915987029415,
+        "recall": 0.5995858475651712,
+        "pixel_false_positive_rate": 0.0031451141518953184
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 21765,
+        "fp": 4889,
+        "fn": 16967,
+        "tn": 3991827,
+        "dice": 0.6657388431774285,
+        "iou": 0.49895692441712713,
+        "precision": 0.8165753733022879,
+        "recall": 0.5619384488278282,
+        "pixel_false_positive_rate": 0.0012232542917735459
+      }
+    ]
+  },
+  "patch_overlap_protocol": {
+    "protocol": {
+      "threshold": 0.5,
+      "normalization": "patch",
+      "tiling": "256 px, 32 px overlap, reflect-padded edges (full coverage)",
+      "false_alarm_definition": "scene without labelled oil but >= 50 predicted pixels"
+    },
+    "n_scenes": 7,
+    "pooled": {
+      "tp": 444196,
+      "fp": 334621,
+      "fn": 1202898,
+      "tn": 47855558,
+      "dice": 0.3662096424807009,
+      "iou": 0.2241472663829056,
+      "precision": 0.5703470776832034,
+      "recall": 0.2696846688774288,
+      "pixel_false_positive_rate": 0.006943759225297752
+    },
+    "macro_mean": {
+      "dice": 0.46916128556850384,
+      "iou": 0.3239187663587149,
+      "precision": 0.6490640557881759,
+      "recall": 0.4294435751431901,
+      "pixel_false_positive_rate": 0.010305311025508726
+    },
+    "false_alarm_scenes": 0,
+    "scenes_without_oil": 0,
+    "calibration": {
+      "ece": 0.023624440239476255,
+      "brier": 0.02597642252105058,
+      "n_pixels": 1400000,
+      "bins": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "count": 1353135,
+          "mean_prob": 0.0006365788428411778,
+          "fraction_oil": 0.01631175012101527
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "count": 4649,
+          "mean_prob": 0.14548896128104616,
+          "fraction_oil": 0.2209077220907722
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.30000000000000004,
+          "count": 3742,
+          "mean_prob": 0.24750385924034868,
+          "fraction_oil": 0.21245323356493853
+        },
+        {
+          "lo": 0.30000000000000004,
+          "hi": 0.4,
+          "count": 3322,
+          "mean_prob": 0.3523204725220001,
+          "fraction_oil": 0.22426249247441302
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "count": 7994,
+          "mean_prob": 0.4654962527646045,
+          "fraction_oil": 0.36777583187390545
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6000000000000001,
+          "count": 2459,
+          "mean_prob": 0.5449029182263049,
+          "fraction_oil": 0.37982919886132577
+        },
+        {
+          "lo": 0.6000000000000001,
+          "hi": 0.7000000000000001,
+          "count": 2180,
+          "mean_prob": 0.6520043398262164,
+          "fraction_oil": 0.3463302752293578
+        },
+        {
+          "lo": 0.7000000000000001,
+          "hi": 0.8,
+          "count": 3183,
+          "mean_prob": 0.7501711813189345,
+          "fraction_oil": 0.371976123154257
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "count": 4018,
+          "mean_prob": 0.8556465322458667,
+          "fraction_oil": 0.48631159780985567
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "count": 15318,
+          "mean_prob": 0.9582946964181237,
+          "fraction_oil": 0.5394960177568873
+        }
+      ]
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 50680,
+        "fp": 49945,
+        "fn": 374325,
+        "tn": 12512115,
+        "dice": 0.19283526434944695,
+        "iou": 0.10670596904937339,
+        "precision": 0.5036521739130384,
+        "recall": 0.11924565593345933,
+        "pixel_false_positive_rate": 0.003975860647059478
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 35850,
+        "fp": 120862,
+        "fn": 23637,
+        "tn": 2431091,
+        "dice": 0.33163890674794827,
+        "iou": 0.19878125190602555,
+        "precision": 0.22876359181172962,
+        "recall": 0.6026526804175601,
+        "pixel_false_positive_rate": 0.04736059010491179
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 28268,
+        "fp": 18168,
+        "fn": 13132,
+        "tn": 8917792,
+        "dice": 0.6436540826084903,
+        "iou": 0.4745500940101989,
+        "precision": 0.6087518304763415,
+        "recall": 0.6828019323671333,
+        "pixel_false_positive_rate": 0.002033133541331877
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 135811,
+        "fp": 55683,
+        "fn": 460388,
+        "tn": 7648618,
+        "dice": 0.3448323141122235,
+        "iou": 0.2083367848782445,
+        "precision": 0.7092180433851677,
+        "recall": 0.22779474638501535,
+        "pixel_false_positive_rate": 0.007227521354630354
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 150300,
+        "fp": 86741,
+        "fn": 291060,
+        "tn": 7971049,
+        "dice": 0.44310076193873466,
+        "iou": 0.28460464948939634,
+        "precision": 0.6340675241835774,
+        "recall": 0.3405383360522015,
+        "pixel_false_positive_rate": 0.010764862325774187
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 23797,
+        "fp": 1409,
+        "fn": 21114,
+        "tn": 4379990,
+        "dice": 0.6787797538400006,
+        "iou": 0.5137521588946349,
+        "precision": 0.9441006109656056,
+        "recall": 0.5298701877045595,
+        "pixel_false_positive_rate": 0.00032158678084328766
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 19490,
+        "fp": 1813,
+        "fn": 19242,
+        "tn": 3994903,
+        "dice": 0.6492879153826826,
+        "iou": 0.48070045628313035,
+        "precision": 0.9148946157817718,
+        "recall": 0.5032014871424015,
+        "pixel_false_positive_rate": 0.0004536224240101122
+      }
+    ]
+  },
+  "stored_vs_fresh_historic": {
+    "stored_source": "ml/baseline/BASELINE_v1.json recorded_test_metrics (ml/results/test_metrics.json)",
+    "stored_mean_dice": 0.46495079007160595,
+    "fresh_mean_dice": 0.46495079007160595,
+    "max_abs_diff_any_metric": 0.0,
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "dice_stored": 0.8484739857492254,
+        "iou_stored": 0.7368257210422414,
+        "precision_stored": 0.7650425574946599,
+        "recall_stored": 0.9523299725885354,
+        "dice_fresh": 0.8484739857492254,
+        "iou_fresh": 0.7368257210422414,
+        "precision_fresh": 0.7650425574946599,
+        "recall_fresh": 0.9523299725885354,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "dice_stored": 0.014585061266644562,
+        "iou_stored": 0.007346102309449461,
+        "precision_stored": 0.10557317625712376,
+        "recall_stored": 0.007833644325649666,
+        "dice_fresh": 0.014585061266644562,
+        "iou_fresh": 0.007346102309449461,
+        "precision_fresh": 0.10557317625712376,
+        "recall_fresh": 0.007833644325649666,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "dice_stored": 0.18449530477668283,
+        "iou_stored": 0.10162204772155044,
+        "precision_stored": 0.1041099804937411,
+        "recall_stored": 0.8096135265698529,
+        "dice_fresh": 0.18449530477668283,
+        "iou_fresh": 0.10162204772155044,
+        "precision_fresh": 0.1041099804937411,
+        "recall_fresh": 0.8096135265698529,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "dice_stored": 0.2936437226178201,
+        "iou_stored": 0.17208816617612588,
+        "precision_stored": 0.2013668805636999,
+        "recall_stored": 0.542030429437142,
+        "dice_fresh": 0.2936437226178201,
+        "iou_fresh": 0.17208816617612588,
+        "precision_fresh": 0.2013668805636999,
+        "recall_fresh": 0.542030429437142,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "20191015.tif",
+        "dice_stored": 0.5687242995218135,
+        "iou_stored": 0.39735482082997964,
+        "precision_stored": 0.507672242921137,
+        "recall_stored": 0.6464677360884392,
+        "dice_fresh": 0.5687242995218135,
+        "iou_fresh": 0.39735482082997964,
+        "precision_fresh": 0.507672242921137,
+        "recall_fresh": 0.6464677360884392,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "20200224_b.tif",
+        "dice_stored": 0.6823146754696002,
+        "iou_stored": 0.5178130641416723,
+        "precision_stored": 0.7498999599837936,
+        "recall_stored": 0.6259045668097736,
+        "dice_fresh": 0.6823146754696002,
+        "iou_fresh": 0.5178130641416723,
+        "precision_fresh": 0.7498999599837936,
+        "recall_fresh": 0.6259045668097736,
+        "max_abs_diff": 0.0
+      },
+      {
+        "scene": "20200319b.tif",
+        "dice_stored": 0.662418481099455,
+        "iou_stored": 0.49523597009918663,
+        "precision_stored": 0.784878169536802,
+        "recall_stored": 0.5730145616026612,
+        "dice_fresh": 0.662418481099455,
+        "iou_fresh": 0.49523597009918663,
+        "precision_fresh": 0.784878169536802,
+        "recall_fresh": 0.5730145616026612,
+        "max_abs_diff": 0.0
+      }
+    ],
+    "note": "Both are retained. Applies only when the checkpoint evaluated is the frozen baseline."
+  },
+  "leakage": {
+    "train_val": {
+      "train_rows": 21744,
+      "val_rows": 7249,
+      "train_source_scenes": 14,
+      "val_source_scenes": 14,
+      "shared_source_scenes": [
+        "2018_08_21_.tif",
+        "2018_09_14_.tif",
+        "2018_12_07.tif",
+        "2018_12_07_b.tif",
+        "2018_12_19.tif",
+        "2018_12_19_b.tif",
+        "2018_12_31_b.tif",
+        "20190816.tif",
+        "20190908.tif",
+        "20200224.tif",
+        "20200307.tif",
+        "20200319.tif",
+        "20200331.tif",
+        "20200822.tif"
+      ],
+      "verdict": "LEAKY: the validation CSV samples patches from the same source scenes as the training CSV (patch-level split); validation Dice is optimistic and not an independent estimate."
+    },
+    "train_test_shared_file_names": [],
+    "test_vs_train_footprints": [
+      {
+        "test_scene": "2018_09_26.tif",
+        "test_date": "2018-09-26T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_08_21_.tif",
+            "days_apart": 36,
+            "overlap_fraction_of_test_footprint": 0.167,
+            "test_slick_pixels_inside_train_footprint": 45506,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_09_14_.tif",
+            "days_apart": 12,
+            "overlap_fraction_of_test_footprint": 0.1047,
+            "test_slick_pixels_inside_train_footprint": 47863,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_07.tif",
+            "days_apart": 72,
+            "overlap_fraction_of_test_footprint": 0.5692,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 41609,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_31_b.tif",
+            "days_apart": 96,
+            "overlap_fraction_of_test_footprint": 0.9933,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20190816.tif",
+            "days_apart": 324,
+            "overlap_fraction_of_test_footprint": 0.1474,
+            "test_slick_pixels_inside_train_footprint": 116576,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200224.tif",
+            "days_apart": 516,
+            "overlap_fraction_of_test_footprint": 0.4143,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200307.tif",
+            "days_apart": 528,
+            "overlap_fraction_of_test_footprint": 0.4074,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 10903,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200331.tif",
+            "days_apart": 552,
+            "overlap_fraction_of_test_footprint": 0.2252,
+            "test_slick_pixels_inside_train_footprint": 74338,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200822.tif",
+            "days_apart": 696,
+            "overlap_fraction_of_test_footprint": 0.165,
+            "test_slick_pixels_inside_train_footprint": 54792,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          }
+        ]
+      },
+      {
+        "test_scene": "2018_12_19_d.tif",
+        "test_date": "2018-12-19T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": []
+      },
+      {
+        "test_scene": "2018_12_19_e.tif",
+        "test_date": "2018-12-19T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_08_21_.tif",
+            "days_apart": 120,
+            "overlap_fraction_of_test_footprint": 0.8002,
+            "test_slick_pixels_inside_train_footprint": 41400,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 41400
+          },
+          {
+            "train_scene": "2018_09_14_.tif",
+            "days_apart": 96,
+            "overlap_fraction_of_test_footprint": 0.3125,
+            "test_slick_pixels_inside_train_footprint": 23033,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 41400
+          },
+          {
+            "train_scene": "20200331.tif",
+            "days_apart": 468,
+            "overlap_fraction_of_test_footprint": 0.0164,
+            "test_slick_pixels_inside_train_footprint": 0,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 41400
+          },
+          {
+            "train_scene": "20200822.tif",
+            "days_apart": 612,
+            "overlap_fraction_of_test_footprint": 0.009,
+            "test_slick_pixels_inside_train_footprint": 0,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 41400
+          }
+        ]
+      },
+      {
+        "test_scene": "2018_12_19_f_.tif",
+        "test_date": "2018-12-19T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_08_21_.tif",
+            "days_apart": 120,
+            "overlap_fraction_of_test_footprint": 0.8086,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 15071,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_09_14_.tif",
+            "days_apart": 96,
+            "overlap_fraction_of_test_footprint": 0.8451,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 4292,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_07.tif",
+            "days_apart": 12,
+            "overlap_fraction_of_test_footprint": 0.3783,
+            "test_slick_pixels_inside_train_footprint": 192842,
+            "of_which_on_train_labelled_slick": 755,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_31_b.tif",
+            "days_apart": 12,
+            "overlap_fraction_of_test_footprint": 0.3649,
+            "test_slick_pixels_inside_train_footprint": 183600,
+            "of_which_on_train_labelled_slick": 2401,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20190816.tif",
+            "days_apart": 240,
+            "overlap_fraction_of_test_footprint": 0.5125,
+            "test_slick_pixels_inside_train_footprint": 198889,
+            "of_which_on_train_labelled_slick": 2861,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200224.tif",
+            "days_apart": 432,
+            "overlap_fraction_of_test_footprint": 0.1145,
+            "test_slick_pixels_inside_train_footprint": 66285,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200307.tif",
+            "days_apart": 444,
+            "overlap_fraction_of_test_footprint": 0.1984,
+            "test_slick_pixels_inside_train_footprint": 147578,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200331.tif",
+            "days_apart": 468,
+            "overlap_fraction_of_test_footprint": 0.6228,
+            "test_slick_pixels_inside_train_footprint": 199483,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200822.tif",
+            "days_apart": 612,
+            "overlap_fraction_of_test_footprint": 0.551,
+            "test_slick_pixels_inside_train_footprint": 198244,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          }
+        ]
+      },
+      {
+        "test_scene": "20191015.tif",
+        "test_date": "2019-10-15T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_08_21_.tif",
+            "days_apart": 420,
+            "overlap_fraction_of_test_footprint": 0.1818,
+            "test_slick_pixels_inside_train_footprint": 19193,
+            "of_which_on_train_labelled_slick": 1170,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_09_14_.tif",
+            "days_apart": 396,
+            "overlap_fraction_of_test_footprint": 0.073,
+            "test_slick_pixels_inside_train_footprint": 22213,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_07.tif",
+            "days_apart": 312,
+            "overlap_fraction_of_test_footprint": 0.5892,
+            "test_slick_pixels_inside_train_footprint": 186162,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "2018_12_31_b.tif",
+            "days_apart": 288,
+            "overlap_fraction_of_test_footprint": 1.0,
+            "test_slick_pixels_inside_train_footprint": 200000,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20190816.tif",
+            "days_apart": 60,
+            "overlap_fraction_of_test_footprint": 0.1306,
+            "test_slick_pixels_inside_train_footprint": 51939,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200224.tif",
+            "days_apart": 132,
+            "overlap_fraction_of_test_footprint": 0.5506,
+            "test_slick_pixels_inside_train_footprint": 159321,
+            "of_which_on_train_labelled_slick": 1919,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200307.tif",
+            "days_apart": 144,
+            "overlap_fraction_of_test_footprint": 0.5266,
+            "test_slick_pixels_inside_train_footprint": 156969,
+            "of_which_on_train_labelled_slick": 13016,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200331.tif",
+            "days_apart": 168,
+            "overlap_fraction_of_test_footprint": 0.1297,
+            "test_slick_pixels_inside_train_footprint": 8824,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          },
+          {
+            "train_scene": "20200822.tif",
+            "days_apart": 312,
+            "overlap_fraction_of_test_footprint": 0.0863,
+            "test_slick_pixels_inside_train_footprint": 5022,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 200000
+          }
+        ]
+      },
+      {
+        "test_scene": "20200224_b.tif",
+        "test_date": "2020-02-24T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_12_19_b.tif",
+            "days_apart": 432,
+            "overlap_fraction_of_test_footprint": 0.0146,
+            "test_slick_pixels_inside_train_footprint": 0,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 44911
+          }
+        ]
+      },
+      {
+        "test_scene": "20200319b.tif",
+        "test_date": "2020-03-19T00:00:00+00:00",
+        "train_scenes_with_overlapping_footprint": [
+          {
+            "train_scene": "2018_08_21_.tif",
+            "days_apart": 576,
+            "overlap_fraction_of_test_footprint": 0.4252,
+            "test_slick_pixels_inside_train_footprint": 35508,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "2018_09_14_.tif",
+            "days_apart": 552,
+            "overlap_fraction_of_test_footprint": 0.4701,
+            "test_slick_pixels_inside_train_footprint": 37500,
+            "of_which_on_train_labelled_slick": 1159,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "2018_12_07.tif",
+            "days_apart": 468,
+            "overlap_fraction_of_test_footprint": 0.8341,
+            "test_slick_pixels_inside_train_footprint": 38732,
+            "of_which_on_train_labelled_slick": 4347,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "2018_12_31_b.tif",
+            "days_apart": 444,
+            "overlap_fraction_of_test_footprint": 0.8974,
+            "test_slick_pixels_inside_train_footprint": 38732,
+            "of_which_on_train_labelled_slick": 26204,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "20190816.tif",
+            "days_apart": 216,
+            "overlap_fraction_of_test_footprint": 0.4898,
+            "test_slick_pixels_inside_train_footprint": 38732,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "20200224.tif",
+            "days_apart": 24,
+            "overlap_fraction_of_test_footprint": 0.289,
+            "test_slick_pixels_inside_train_footprint": 7265,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "20200307.tif",
+            "days_apart": 12,
+            "overlap_fraction_of_test_footprint": 0.4579,
+            "test_slick_pixels_inside_train_footprint": 27157,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "20200331.tif",
+            "days_apart": 12,
+            "overlap_fraction_of_test_footprint": 1.0,
+            "test_slick_pixels_inside_train_footprint": 38732,
+            "of_which_on_train_labelled_slick": 1222,
+            "sampled_test_slick_pixels": 38732
+          },
+          {
+            "train_scene": "20200822.tif",
+            "days_apart": 156,
+            "overlap_fraction_of_test_footprint": 0.8296,
+            "test_slick_pixels_inside_train_footprint": 38732,
+            "of_which_on_train_labelled_slick": 0,
+            "sampled_test_slick_pixels": 38732
+          }
+        ]
+      }
+    ],
+    "test_scenes_whose_footprint_overlaps_a_train_scene": [
+      "2018_09_26.tif",
+      "2018_12_19_e.tif",
+      "2018_12_19_f_.tif",
+      "20191015.tif",
+      "20200224_b.tif",
+      "20200319b.tif"
+    ]
+  },
+  "frozen_baseline_sha256_at_end": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "frozen_baseline_unchanged": true,
+  "duration_seconds": 36.6
+}

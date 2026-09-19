@@ -1,0 +1,29 @@
+from ml.datasets.dataset import SAROilSpillDataset
+
+
+DATASET_ROOT = "ml/datasets/radar_data/Radar_data"
+
+
+print("Starting dataset test...")
+
+dataset = SAROilSpillDataset(
+    root_dir=DATASET_ROOT,
+    split="train",
+)
+
+print("Dataset length:", len(dataset))
+
+image, mask = dataset[0]
+
+print("Image shape:", image.shape)
+print("Mask shape:", mask.shape)
+
+print("Image dtype:", image.dtype)
+print("Mask dtype:", mask.dtype)
+
+print("Image min:", image.min().item())
+print("Image max:", image.max().item())
+
+print("Mask unique values:", mask.unique().tolist())
+
+print("\nREAL DATASET TEST PASSED")

@@ -1,0 +1,255 @@
+{
+ "generated_by": "server/tests/export_drift_reference.ts",
+ "engine": "server/lib/drift.ts",
+ "wind_factor": 0.03,
+ "deflection_deg": 5,
+ "scenarios": [
+  {
+   "id": "current_east_1ms_1h",
+   "description": "1 m/s eastward current, 1 h",
+   "mode": "FORWARD",
+   "lat": 10,
+   "lon": 50,
+   "hours": 1,
+   "dt_min": 30,
+   "wind": null,
+   "current": [
+    1,
+    0
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 1,
+    "d_lat": 0,
+    "d_lon": 0.0328749999999971,
+    "displacement_km": 3.6,
+    "bearing_deg": 90,
+    "r50_km": 0.4,
+    "r90_km": 0.683,
+    "current_prior_applied": false,
+    "end_time": "2020-01-01T01:00:00.000Z"
+   }
+  },
+  {
+   "id": "wind_north_NH",
+   "description": "10 m/s wind toward north at 30N: drift 5 deg right of wind",
+   "mode": "FORWARD",
+   "lat": 30,
+   "lon": 0,
+   "hours": 6,
+   "dt_min": 30,
+   "wind": [
+    0,
+    10
+   ],
+   "current": [
+    0,
+    0
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 6,
+    "d_lat": 0.05805400000000205,
+    "d_lon": 0.005867,
+    "displacement_km": 6.48,
+    "bearing_deg": 5,
+    "r50_km": 0.4,
+    "r90_km": 0.682,
+    "current_prior_applied": false,
+    "end_time": "2020-01-01T06:00:00.000Z"
+   }
+  },
+  {
+   "id": "wind_north_SH",
+   "description": "10 m/s wind toward north at 30S: drift 5 deg left of wind",
+   "mode": "FORWARD",
+   "lat": -30,
+   "lon": 0,
+   "hours": 6,
+   "dt_min": 30,
+   "wind": [
+    0,
+    10
+   ],
+   "current": [
+    0,
+    0
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 6,
+    "d_lat": 0.05805400000000205,
+    "d_lon": -0.005863,
+    "displacement_km": 6.48,
+    "bearing_deg": 355,
+    "r50_km": 0.4,
+    "r90_km": 0.683,
+    "current_prior_applied": false,
+    "end_time": "2020-01-01T06:00:00.000Z"
+   }
+  },
+  {
+   "id": "backward_era5_like_gom",
+   "description": "ERA5-like wind at the GoM slick (14:00 UTC field) plus a user current, BACKWARD 12 h",
+   "mode": "BACKWARD",
+   "lat": 28.904745,
+   "lon": -89.02427,
+   "hours": 12,
+   "dt_min": 30,
+   "wind": [
+    1.4775,
+    1.6377
+   ],
+   "current": [
+    0.2,
+    -0.1
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 12,
+    "d_lat": 0.021335999999998023,
+    "d_lon": -0.11026699999999323,
+    "displacement_km": 10.992,
+    "bearing_deg": 282.5,
+    "r50_km": 0.4,
+    "r90_km": 0.683,
+    "current_prior_applied": false,
+    "end_time": "2019-12-31T12:00:00.000Z"
+   }
+  },
+  {
+   "id": "forward_high_lat_48h",
+   "description": "0.5 m/s NE current at 60N for 48 h (metres-to-degrees at changing latitude)",
+   "mode": "FORWARD",
+   "lat": 60,
+   "lon": 5,
+   "hours": 48,
+   "dt_min": 30,
+   "wind": null,
+   "current": [
+    0.5,
+    0.5
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 48,
+    "d_lat": 0.7770119999999991,
+    "d_lon": 1.5726259999999996,
+    "displacement_km": 122.185,
+    "bearing_deg": 44.3,
+    "r50_km": 0.39,
+    "r90_km": 0.668,
+    "current_prior_applied": false,
+    "end_time": "2020-01-03T00:00:00.000Z"
+   }
+  },
+  {
+   "id": "non_multiple_duration",
+   "description": "10 h at 45 min steps -> 14 steps = 10.5 h",
+   "mode": "FORWARD",
+   "lat": 28.9,
+   "lon": -89,
+   "hours": 10,
+   "dt_min": 45,
+   "wind": [
+    3,
+    4
+   ],
+   "current": [
+    0.1,
+    0.05
+   ],
+   "K": 0,
+   "sigma": 0,
+   "n": 4,
+   "deterministic": true,
+   "ts": {
+    "simulated_hours": 10.5,
+    "d_lat": 0.054967999999998796,
+    "d_lon": 0.07772599999999841,
+    "displacement_km": 9.725,
+    "bearing_deg": 51,
+    "r50_km": 0.4,
+    "r90_km": 0.682,
+    "current_prior_applied": false,
+    "end_time": "2020-01-01T10:30:00.000Z"
+   }
+  },
+  {
+   "id": "diffusion_only_K10",
+   "description": "diffusion K = 10 m2/s for 10 h, 300 m seed cloud",
+   "mode": "FORWARD",
+   "lat": 10,
+   "lon": 50,
+   "hours": 10,
+   "dt_min": 30,
+   "wind": [
+    0,
+    0
+   ],
+   "current": [
+    0,
+    0
+   ],
+   "K": 10,
+   "sigma": 0,
+   "n": 3000,
+   "deterministic": false,
+   "ts": {
+    "simulated_hours": 10,
+    "d_lat": 0.00006800000000062312,
+    "d_lon": -0.00003199999999736747,
+    "displacement_km": 0.008,
+    "bearing_deg": 335.3,
+    "r50_km": 1.047,
+    "r90_km": 1.934,
+    "current_prior_applied": false,
+    "end_time": "2020-01-01T10:00:00.000Z"
+   }
+  },
+  {
+   "id": "unknown_current_prior",
+   "description": "no current product: zero-mean prior sigma 0.1 m/s for 12 h, no diffusion",
+   "mode": "BACKWARD",
+   "lat": 28.9,
+   "lon": -89,
+   "hours": 12,
+   "dt_min": 30,
+   "wind": [
+    0,
+    0
+   ],
+   "current": null,
+   "K": 0,
+   "sigma": 0.1,
+   "n": 3000,
+   "deterministic": false,
+   "ts": {
+    "simulated_hours": 12,
+    "d_lat": 0.0010739999999991312,
+    "d_lon": -0.0002709999999979118,
+    "displacement_km": 0.122,
+    "bearing_deg": 347.6,
+    "r50_km": 5.135,
+    "r90_km": 9.483,
+    "current_prior_applied": true,
+    "end_time": "2019-12-31T12:00:00.000Z"
+   }
+  }
+ ]
+}

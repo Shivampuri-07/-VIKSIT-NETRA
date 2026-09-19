@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aegis-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - APP_MODE=REAL
+    restart: unless-stopped
+
+  # Optional legacy FastAPI service. The web UI does NOT call it; it is heavy
+  # (PyTorch + GDAL). Start it explicitly with: docker compose --profile api up
+  model-api:
+    profiles: ["api"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: aegis-model-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_MODE=DEMO
+      - MODEL_PATH=/app/ml/checkpoints/unet_oil_spill_best.pth
+      - CORS_ALLOW_ORIGINS=http://localhost:3000
+    restart: unless-stopped

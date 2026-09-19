@@ -1,0 +1,140 @@
+{
+ "schema": "aegis.baseline_manifest.v1",
+ "baseline_id": "unet_oil_spill_best@33688d9b",
+ "frozen_utc": "2026-09-18T19:57:33Z",
+ "statement": "Production baseline. Must never be overwritten; candidates live in ml/checkpoints/candidates/. Any candidate is compared against the recorded_test_metrics below on the SAME 7 held-out scenes.",
+ "checkpoint": {
+  "path": "ml/checkpoints/unet_oil_spill_best.pth",
+  "size_bytes": 17329363,
+  "sha256": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "structure": {
+   "keys_match": true,
+   "shapes_match": true,
+   "n_tensors": 110,
+   "n_parameters": 4322241,
+   "metadata": {
+    "epoch": 3,
+    "val_dice": 0.6844975520439229,
+    "val_iou": 0.6060020662617319,
+    "val_precision": 0.756531527110812,
+    "val_recall": 0.791476498442805
+   }
+  }
+ },
+ "recorded_test_metrics": {
+  "source": "ml/results/test_metrics.json (produced by ml/inference/test_model.py; not re-run here)",
+  "mean_dice": 0.46495079007160595,
+  "mean_iou": 0.3468979846171723,
+  "mean_precision": 0.4597918524644224,
+  "mean_recall": 0.593884919631722,
+  "per_scene": [
+   {
+    "image": "2018_09_26.tif",
+    "dice": 0.8484739857492254,
+    "iou": 0.7368257210422414,
+    "precision": 0.7650425574946599,
+    "recall": 0.9523299725885354
+   },
+   {
+    "image": "2018_12_19_d.tif",
+    "dice": 0.014585061266644562,
+    "iou": 0.007346102309449461,
+    "precision": 0.10557317625712376,
+    "recall": 0.007833644325649666
+   },
+   {
+    "image": "2018_12_19_e.tif",
+    "dice": 0.18449530477668283,
+    "iou": 0.10162204772155044,
+    "precision": 0.1041099804937411,
+    "recall": 0.8096135265698529
+   },
+   {
+    "image": "2018_12_19_f_.tif",
+    "dice": 0.2936437226178201,
+    "iou": 0.17208816617612588,
+    "precision": 0.2013668805636999,
+    "recall": 0.542030429437142
+   },
+   {
+    "image": "20191015.tif",
+    "dice": 0.5687242995218135,
+    "iou": 0.39735482082997964,
+    "precision": 0.507672242921137,
+    "recall": 0.6464677360884392
+   },
+   {
+    "image": "20200224_b.tif",
+    "dice": 0.6823146754696002,
+    "iou": 0.5178130641416723,
+    "precision": 0.7498999599837936,
+    "recall": 0.6259045668097736
+   },
+   {
+    "image": "20200319b.tif",
+    "dice": 0.662418481099455,
+    "iou": 0.49523597009918663,
+    "precision": 0.784878169536802,
+    "recall": 0.5730145616026612
+   }
+  ]
+ },
+ "evaluation_protocol_as_implemented": {
+  "script": "ml/inference/test_model.py",
+  "test_scenes": [
+   "2018_09_26.tif",
+   "2018_12_19_d.tif",
+   "2018_12_19_e.tif",
+   "2018_12_19_f_.tif",
+   "20191015.tif",
+   "20200224_b.tif",
+   "20200319b.tif"
+  ],
+  "input_normalisation": "z-score over the finite pixels of the WHOLE scene",
+  "tiling": "256 x 256, stride 256 (no overlap); right/bottom remainders narrower than 256 px are never predicted and count as 'no oil'",
+  "threshold": 0.5,
+  "mask_binarisation": "mask > 0.5",
+  "aggregation": "metrics per scene, then unweighted mean over the 7 scenes"
+ },
+ "known_protocol_issues": [
+  "Training normalises each 256 px PATCH (ml/datasets/dataset.py) but evaluation normalises the WHOLE SCENE: train/test preprocessing differ.",
+  "Scene edges not covered by the non-overlapping tiling are scored as negative.",
+  "The overlay PNGs cast z-scores*255 to uint8 (integer wrap-around): their grey background is not a faithful SAR rendering (metrics unaffected).",
+  "real_scene_inference.py comments that its whole-image normalisation is 'the same normalization used during training': it is not."
+ ],
+ "reproducibility_status": {
+  "test_scene_reevaluation": "NOT RE-RUN: the 7 test scenes (Radar_data/test) are not in the repository and PyTorch is unavailable in the verification environment.",
+  "independent_inference_reproduction": {
+   "input": "data/sentinel1/copernicus_sigma0_test.tif",
+   "stored_pytorch_output": "data/sentinel1/copernicus_oil_probability.tif",
+   "recipe": "ml/inference/real_scene_inference.py (whole-image z-score, 256 px tiles, 32 px overlap, reflect pad, overlap mean)",
+   "max_abs_diff": 8.754432201385498e-08,
+   "max_rel_diff": 4.39624122414636e-05,
+   "numpy_max_prob": 0.03773361071944237,
+   "stored_max_prob": 0.037733543664216995,
+   "pixels_ge_0_5_numpy": 0,
+   "pixels_ge_0_5_stored": 0,
+   "passed": true
+  }
+ },
+ "artifacts_sha256": {
+  "ml/checkpoints/unet_oil_spill_best.pth": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "ml/results/test_metrics.json": "b8f691ae2c04c7b8c2835320e8500124b1f4d55c56380931915a58baf4e9d68e",
+  "data/sentinel1/copernicus_sigma0_test.tif": "f1e45a7fb8884de69e41f9ed3f405d0e93b18490834c9dc5cfdb88d9a3d6318a",
+  "data/sentinel1/copernicus_oil_probability.tif": "134be74720b6157a31b59e9ae514a7849e29b6fb4df9677c41343b35818572e3",
+  "ml/results/predictions/2018_09_26_prediction.png": "2bd05e0dde6e11f60454d0aaa3b04a7a2b1964b04202ef970eb868237545a4c7",
+  "ml/results/predictions/2018_12_19_d_prediction.png": "9de2c527e3ca97a4c9785b36d69e9f4e1dab343d67050b1334a56caeb3da173e",
+  "ml/results/predictions/2018_12_19_e_prediction.png": "089839dafb12fb992e8b628f02d0d8dbe8674e33839704e444a946e872c82618",
+  "ml/results/predictions/2018_12_19_f__prediction.png": "b8f03a022ca803188a90e8734b19bddce725203042a9bb37e4979f5948ad8aa2",
+  "ml/results/predictions/20191015_prediction.png": "915dad983fccb5dad0feecf429a9d3b9186e08ca64ff609872bc277105345324",
+  "ml/results/predictions/20200224_b_prediction.png": "a2aebb7b007f3f2ede6f0ccfabe1715f6254df45409c8811312ef8a3f7c06f76",
+  "ml/results/predictions/20200319b_prediction.png": "fe407efd73a7ec699152dc4ada29587a67330ec277113aee91362b4402a95fb0",
+  "ml/results/overlays/2018_09_26_overlay.png": "929c3837a7fa29cfdbc390d34f3ef27f94ac5a7941ec37bac17d76a3b2e9abfa",
+  "ml/results/overlays/2018_12_19_d_overlay.png": "ff185685e85889c64eefe0236e3a5949fa5885d5b1a1ff5b1c2adb0969e90dd5",
+  "ml/results/overlays/2018_12_19_e_overlay.png": "22acc55922508a1fddf9e3a9b56560300716f352b04ff33c29b60511c01ba5ff",
+  "ml/results/overlays/2018_12_19_f__overlay.png": "3771abe1b37bbfd45365b76415bc650173ef9d13030522cb7e4a940f8d1a84df",
+  "ml/results/overlays/20191015_overlay.png": "624875c54a618cd629719928668f4a90a10436771a75c284ae3cf8a93b904e5e",
+  "ml/results/overlays/20200224_b_overlay.png": "2cb17413d5472827d977acfb5493a3cb67d1a3d7de2fb198800350d63ac3149d",
+  "ml/results/overlays/20200319b_overlay.png": "e0429b04ab11de9473202788a2161e7846b528ed9697e6460316469e7ee9c9d4"
+ }
+}

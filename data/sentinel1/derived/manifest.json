@@ -1,0 +1,20 @@
+[
+ {
+  "name": "overlay_scene",
+  "file": "2018_09_26_overlay_scene.jpg",
+  "description": "Full test scene: normalised SAR backscatter (grey) with U-Net predicted oil pixels (red). Downscaled from ml/results/overlays/2018_09_26_overlay.png.",
+  "georeferenced": false
+ },
+ {
+  "name": "overlay_slick_crop",
+  "file": "2018_09_26_overlay_slick_crop.jpg",
+  "description": "Crop around the predicted slick (pixel box [3209, 416, 5083, 2553]), SAR with U-Net prediction in red.",
+  "georeferenced": false
+ },
+ {
+  "name": "unet_mask_crop",
+  "file": "2018_09_26_unet_mask_crop.png",
+  "description": "U-Net binary prediction mask, same crop (white = predicted oil).",
+  "georeferenced": false
+ }
+]

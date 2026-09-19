@@ -1,0 +1,633 @@
+{
+  "schema": "aegis.checkpoint_evaluation.v1",
+  "label": "candidate_six_epoch",
+  "created_utc": "2026-09-19T16:55:03Z",
+  "checkpoint": {
+    "path": "ml/checkpoints/candidates/20260919T132055Z_six_epoch_experiment/candidate_best.pth",
+    "sha256": "0b7d86cf095e0f3b1f170a09ae46c3ca25a2df882498227e3624507179659587",
+    "size_bytes": 17328975,
+    "metadata_in_file": {
+      "epoch": 6,
+      "val_dice": 0.5708956500001835,
+      "val_iou": 0.4995012912194445,
+      "val_precision": 0.6414909095074818,
+      "val_recall": 0.7527921096086332,
+      "seed": 42,
+      "candidate": true
+    },
+    "sha256_after": "0b7d86cf095e0f3b1f170a09ae46c3ca25a2df882498227e3624507179659587",
+    "unchanged": true
+  },
+  "frozen_baseline_sha256_at_start": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "environment": {
+    "device": "mps",
+    "torch": "2.8.0",
+    "numpy": "2.0.2"
+  },
+  "dataset": {
+    "root": "ml",
+    "note": "root recorded without the user's home path",
+    "split": "test",
+    "scene_ids": [
+      "2018_09_26.tif",
+      "2018_12_19_d.tif",
+      "2018_12_19_e.tif",
+      "2018_12_19_f_.tif",
+      "20191015.tif",
+      "20200224_b.tif",
+      "20200319b.tif"
+    ],
+    "n_scenes": 7,
+    "crs": "EPSG:32616",
+    "pixel_size_m": 10.0
+  },
+  "threshold": 0.5,
+  "ground_truth": "REFERENCE_LABEL masks of the labelled dataset (Zenodo 10.5281/zenodo.4672426); evaluation only",
+  "historic_protocol": {
+    "description": "whole-scene z-score, 256 px tiles stride 256, remainder strips scored as 'no oil' (replicates ml/inference/test_model.py)",
+    "macro_mean": {
+      "dice": 0.5462327067242434,
+      "iou": 0.419728606430958,
+      "precision": 0.5403446983198908,
+      "recall": 0.7472261512999026,
+      "pixel_false_positive_rate": 0.08914611751190867
+    },
+    "pooled": {
+      "tp": 1187177,
+      "fp": 2808663,
+      "fn": 459917,
+      "tn": 45381516,
+      "dice": 0.42076586399911814,
+      "iou": 0.26643665711572684,
+      "precision": 0.29710323736686145,
+      "recall": 0.7207706421127145,
+      "pixel_false_positive_rate": 0.05828289203906049
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 399950,
+        "fp": 53984,
+        "fn": 25055,
+        "tn": 12508076,
+        "dice": 0.910074533044945,
+        "iou": 0.8349878598464509,
+        "precision": 0.8810752223891385,
+        "recall": 0.9410477523793616,
+        "pixel_false_positive_rate": 0.004297384346197995
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 54102,
+        "fp": 1009894,
+        "fn": 5385,
+        "tn": 1542059,
+        "dice": 0.0963112036408197,
+        "iou": 0.050591884464002534,
+        "precision": 0.0508479355185541,
+        "recall": 0.909476019970597,
+        "pixel_false_positive_rate": 0.3957337772286557
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 36522,
+        "fp": 78393,
+        "fn": 4878,
+        "tn": 8857567,
+        "dice": 0.46728720852122524,
+        "iou": 0.3048759109463571,
+        "precision": 0.3178175172953646,
+        "recall": 0.8821739130432652,
+        "pixel_false_positive_rate": 0.008772756368649813
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 359632,
+        "fp": 1372426,
+        "fn": 236567,
+        "tn": 6331875,
+        "dice": 0.3089280951372623,
+        "iou": 0.18268182106800337,
+        "precision": 0.20763276980331946,
+        "recall": 0.6032079892787374,
+        "pixel_false_positive_rate": 0.17813764026093995
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 285003,
+        "fp": 288997,
+        "fn": 156357,
+        "tn": 7768793,
+        "dice": 0.5613831547431397,
+        "iou": 0.39022423280669055,
+        "precision": 0.4965209059233363,
+        "recall": 0.6457381729200506,
+        "pixel_false_positive_rate": 0.035865541296062564
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 26123,
+        "fp": 1254,
+        "fn": 18788,
+        "tn": 4380145,
+        "dice": 0.7227478972995902,
+        "iou": 0.5658615834505436,
+        "precision": 0.9541951272962873,
+        "recall": 0.5816615083163186,
+        "pixel_false_positive_rate": 0.0002862099525745087
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 25845,
+        "fp": 3715,
+        "fn": 12887,
+        "tn": 3993001,
+        "dice": 0.7568968546827217,
+        "iou": 0.6088769524346577,
+        "precision": 0.874323410013236,
+        "recall": 0.6672777031909876,
+        "pixel_false_positive_rate": 0.0009295131302799596
+      }
+    ]
+  },
+  "scene_overlap_protocol": {
+    "protocol": {
+      "threshold": 0.5,
+      "normalization": "scene",
+      "tiling": "256 px, 32 px overlap, reflect-padded edges (full coverage)",
+      "false_alarm_definition": "scene without labelled oil but >= 50 predicted pixels"
+    },
+    "n_scenes": 7,
+    "pooled": {
+      "tp": 1243768,
+      "fp": 2963070,
+      "fn": 403326,
+      "tn": 45227109,
+      "dice": 0.42493421515658186,
+      "iou": 0.2697882331301012,
+      "precision": 0.29565388541227394,
+      "recall": 0.7551287297506999,
+      "pixel_false_positive_rate": 0.06148700962492793
+    },
+    "macro_mean": {
+      "dice": 0.5519879245436415,
+      "iou": 0.4246618829266118,
+      "precision": 0.5428194497186204,
+      "recall": 0.76410771815792,
+      "pixel_false_positive_rate": 0.09696756969243113
+    },
+    "false_alarm_scenes": 0,
+    "scenes_without_oil": 0,
+    "calibration": {
+      "ece": 0.09281975861344778,
+      "brier": 0.09054858550527858,
+      "n_pixels": 1400000,
+      "bins": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "count": 1219877,
+          "mean_prob": 0.0009566196595088108,
+          "fraction_oil": 0.006335884683455791
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "count": 7220,
+          "mean_prob": 0.14539213928902248,
+          "fraction_oil": 0.11952908587257617
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.30000000000000004,
+          "count": 4487,
+          "mean_prob": 0.24694728849989975,
+          "fraction_oil": 0.1212391352796969
+        },
+        {
+          "lo": 0.30000000000000004,
+          "hi": 0.4,
+          "count": 3371,
+          "mean_prob": 0.349184210745668,
+          "fraction_oil": 0.1388312073568674
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "count": 4132,
+          "mean_prob": 0.45311196233503814,
+          "fraction_oil": 0.15125847047434657
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6000000000000001,
+          "count": 3785,
+          "mean_prob": 0.5482139915109783,
+          "fraction_oil": 0.14583883751651255
+        },
+        {
+          "lo": 0.6000000000000001,
+          "hi": 0.7000000000000001,
+          "count": 3543,
+          "mean_prob": 0.650612974836434,
+          "fraction_oil": 0.18120237087214225
+        },
+        {
+          "lo": 0.7000000000000001,
+          "hi": 0.8,
+          "count": 4446,
+          "mean_prob": 0.7532089546329526,
+          "fraction_oil": 0.18915879442195233
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "count": 11242,
+          "mean_prob": 0.8619593039268999,
+          "fraction_oil": 0.20094289272371463
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "count": 137897,
+          "mean_prob": 0.9695675236770405,
+          "fraction_oil": 0.18961253689347846
+        }
+      ]
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 399461,
+        "fp": 55188,
+        "fn": 25544,
+        "tn": 12506872,
+        "dice": 0.908223005863668,
+        "iou": 0.8318759332185167,
+        "precision": 0.8786140517190165,
+        "recall": 0.9398971776802604,
+        "pixel_false_positive_rate": 0.0043932284991474325
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 55734,
+        "fp": 1142264,
+        "fn": 3753,
+        "tn": 1409689,
+        "dice": 0.0886436021105619,
+        "iou": 0.04637732774925917,
+        "precision": 0.04652261522974158,
+        "recall": 0.9369105855060612,
+        "pixel_false_positive_rate": 0.44760385477318726
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 35740,
+        "fp": 74427,
+        "fn": 5660,
+        "tn": 8861533,
+        "dice": 0.4716066162159278,
+        "iou": 0.30856363369507706,
+        "precision": 0.3244165675746791,
+        "recall": 0.8632850241545685,
+        "pixel_false_positive_rate": 0.008328931642487207
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 418927,
+        "fp": 1395365,
+        "fn": 177272,
+        "tn": 6308936,
+        "dice": 0.34758644608090206,
+        "iou": 0.21035075950358603,
+        "precision": 0.23090384568746364,
+        "recall": 0.7026630370060991,
+        "pixel_false_positive_rate": 0.18111506806392946
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 281099,
+        "fp": 290721,
+        "fn": 160261,
+        "tn": 7767069,
+        "dice": 0.5548846206991842,
+        "iou": 0.38397253855789126,
+        "precision": 0.4915865132384308,
+        "recall": 0.6368927859343833,
+        "pixel_false_positive_rate": 0.036079495742629177
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 26544,
+        "fp": 1133,
+        "fn": 18367,
+        "tn": 4380266,
+        "dice": 0.7313605554637029,
+        "iou": 0.5764920510815617,
+        "precision": 0.9590634823137999,
+        "recall": 0.591035603749625,
+        "pixel_false_positive_rate": 0.0002585932027646877
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 26263,
+        "fp": 3972,
+        "fn": 12469,
+        "tn": 3992744,
+        "dice": 0.7616106253715434,
+        "iou": 0.6150009366803902,
+        "precision": 0.8686290722672112,
+        "recall": 0.6780698130744429,
+        "pixel_false_positive_rate": 0.0009938159228726783
+      }
+    ]
+  },
+  "patch_overlap_protocol": {
+    "protocol": {
+      "threshold": 0.5,
+      "normalization": "patch",
+      "tiling": "256 px, 32 px overlap, reflect-padded edges (full coverage)",
+      "false_alarm_definition": "scene without labelled oil but >= 50 predicted pixels"
+    },
+    "n_scenes": 7,
+    "pooled": {
+      "tp": 573014,
+      "fp": 718927,
+      "fn": 1074080,
+      "tn": 47471252,
+      "dice": 0.38993343053076934,
+      "iou": 0.24218466361879282,
+      "precision": 0.443529541983728,
+      "recall": 0.34789392712255623,
+      "pixel_false_positive_rate": 0.014918537654736663
+    },
+    "macro_mean": {
+      "dice": 0.45514328762311484,
+      "iou": 0.3085037901312814,
+      "precision": 0.5524576878160661,
+      "recall": 0.5082144383818975,
+      "pixel_false_positive_rate": 0.02513924652898322
+    },
+    "false_alarm_scenes": 0,
+    "scenes_without_oil": 0,
+    "calibration": {
+      "ece": 0.03561847605798556,
+      "brier": 0.037256747573284725,
+      "n_pixels": 1400000,
+      "bins": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "count": 1326037,
+          "mean_prob": 0.000924911864369575,
+          "fraction_oil": 0.014105941236933811
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "count": 5630,
+          "mean_prob": 0.14428881473349636,
+          "fraction_oil": 0.2285968028419183
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.30000000000000004,
+          "count": 3984,
+          "mean_prob": 0.2461197219011056,
+          "fraction_oil": 0.23845381526104417
+        },
+        {
+          "lo": 0.30000000000000004,
+          "hi": 0.4,
+          "count": 3172,
+          "mean_prob": 0.35175488857272896,
+          "fraction_oil": 0.2578814627994956
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "count": 10568,
+          "mean_prob": 0.4664846977880288,
+          "fraction_oil": 0.23069644208932627
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6000000000000001,
+          "count": 2559,
+          "mean_prob": 0.5444107580902335,
+          "fraction_oil": 0.3786635404454865
+        },
+        {
+          "lo": 0.6000000000000001,
+          "hi": 0.7000000000000001,
+          "count": 2318,
+          "mean_prob": 0.650807158277403,
+          "fraction_oil": 0.3830888697152718
+        },
+        {
+          "lo": 0.7000000000000001,
+          "hi": 0.8,
+          "count": 2851,
+          "mean_prob": 0.7532712477460237,
+          "fraction_oil": 0.3753069098561908
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "count": 6584,
+          "mean_prob": 0.8594354786078376,
+          "fraction_oil": 0.36846901579586877
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "count": 36297,
+          "mean_prob": 0.9603202594119064,
+          "fraction_oil": 0.3063338567925724
+        }
+      ]
+    },
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "tp": 89535,
+        "fp": 168905,
+        "fn": 335470,
+        "tn": 12393155,
+        "dice": 0.2620108421306758,
+        "iou": 0.1507551649239781,
+        "precision": 0.3464440489088363,
+        "recall": 0.2106681097869432,
+        "pixel_false_positive_rate": 0.013445645061399163
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "tp": 48138,
+        "fp": 333775,
+        "fn": 11349,
+        "tn": 2218178,
+        "dice": 0.21811508835523286,
+        "iou": 0.12240694498832809,
+        "precision": 0.12604441325642196,
+        "recall": 0.8092188209188427,
+        "pixel_false_positive_rate": 0.13079198558907623
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "tp": 33257,
+        "fp": 19750,
+        "fn": 8143,
+        "tn": 8916210,
+        "dice": 0.7045452138082906,
+        "iou": 0.5438593622240304,
+        "precision": 0.6274077008696847,
+        "recall": 0.803309178743942,
+        "pixel_false_positive_rate": 0.00221017103926159
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "tp": 186676,
+        "fp": 97060,
+        "fn": 409523,
+        "tn": 7607241,
+        "dice": 0.4242949763334787,
+        "iou": 0.26927309995254256,
+        "precision": 0.6579214481066884,
+        "recall": 0.31311021990979465,
+        "pixel_false_positive_rate": 0.012598157834176
+      },
+      {
+        "scene": "20191015.tif",
+        "tp": 172967,
+        "fp": 62983,
+        "fn": 268393,
+        "tn": 7994807,
+        "dice": 0.5107469253369941,
+        "iou": 0.3429550920702769,
+        "precision": 0.733066327611779,
+        "recall": 0.3918955048033343,
+        "pixel_false_positive_rate": 0.00781641119959691
+      },
+      {
+        "scene": "20200224_b.tif",
+        "tp": 18710,
+        "fp": 393,
+        "fn": 26201,
+        "tn": 4381006,
+        "dice": 0.5845596275814574,
+        "iou": 0.41298781564540854,
+        "precision": 0.9794273150813495,
+        "recall": 0.4166017234085098,
+        "pixel_false_positive_rate": 8.969737748148478e-05
+      },
+      {
+        "scene": "20200319b.tif",
+        "tp": 23731,
+        "fp": 36061,
+        "fn": 15001,
+        "tn": 3960655,
+        "dice": 0.48173033981567454,
+        "iou": 0.31728905111440486,
+        "precision": 0.39689256087770275,
+        "recall": 0.6126975111019155,
+        "pixel_false_positive_rate": 0.00902265760189115
+      }
+    ]
+  },
+  "stored_vs_fresh_historic": {
+    "stored_source": "ml/baseline/BASELINE_v1.json recorded_test_metrics (ml/results/test_metrics.json)",
+    "stored_mean_dice": 0.46495079007160595,
+    "fresh_mean_dice": 0.5462327067242434,
+    "max_abs_diff_any_metric": 0.9016423756449473,
+    "per_scene": [
+      {
+        "scene": "2018_09_26.tif",
+        "dice_stored": 0.8484739857492254,
+        "iou_stored": 0.7368257210422414,
+        "precision_stored": 0.7650425574946599,
+        "recall_stored": 0.9523299725885354,
+        "dice_fresh": 0.910074533044945,
+        "iou_fresh": 0.8349878598464509,
+        "precision_fresh": 0.8810752223891385,
+        "recall_fresh": 0.9410477523793616,
+        "max_abs_diff": 0.11603266489447861
+      },
+      {
+        "scene": "2018_12_19_d.tif",
+        "dice_stored": 0.014585061266644562,
+        "iou_stored": 0.007346102309449461,
+        "precision_stored": 0.10557317625712376,
+        "recall_stored": 0.007833644325649666,
+        "dice_fresh": 0.0963112036408197,
+        "iou_fresh": 0.050591884464002534,
+        "precision_fresh": 0.0508479355185541,
+        "recall_fresh": 0.909476019970597,
+        "max_abs_diff": 0.9016423756449473
+      },
+      {
+        "scene": "2018_12_19_e.tif",
+        "dice_stored": 0.18449530477668283,
+        "iou_stored": 0.10162204772155044,
+        "precision_stored": 0.1041099804937411,
+        "recall_stored": 0.8096135265698529,
+        "dice_fresh": 0.46728720852122524,
+        "iou_fresh": 0.3048759109463571,
+        "precision_fresh": 0.3178175172953646,
+        "recall_fresh": 0.8821739130432652,
+        "max_abs_diff": 0.28279190374454244
+      },
+      {
+        "scene": "2018_12_19_f_.tif",
+        "dice_stored": 0.2936437226178201,
+        "iou_stored": 0.17208816617612588,
+        "precision_stored": 0.2013668805636999,
+        "recall_stored": 0.542030429437142,
+        "dice_fresh": 0.3089280951372623,
+        "iou_fresh": 0.18268182106800337,
+        "precision_fresh": 0.20763276980331946,
+        "recall_fresh": 0.6032079892787374,
+        "max_abs_diff": 0.06117755984159545
+      },
+      {
+        "scene": "20191015.tif",
+        "dice_stored": 0.5687242995218135,
+        "iou_stored": 0.39735482082997964,
+        "precision_stored": 0.507672242921137,
+        "recall_stored": 0.6464677360884392,
+        "dice_fresh": 0.5613831547431397,
+        "iou_fresh": 0.39022423280669055,
+        "precision_fresh": 0.4965209059233363,
+        "recall_fresh": 0.6457381729200506,
+        "max_abs_diff": 0.011151336997800687
+      },
+      {
+        "scene": "20200224_b.tif",
+        "dice_stored": 0.6823146754696002,
+        "iou_stored": 0.5178130641416723,
+        "precision_stored": 0.7498999599837936,
+        "recall_stored": 0.6259045668097736,
+        "dice_fresh": 0.7227478972995902,
+        "iou_fresh": 0.5658615834505436,
+        "precision_fresh": 0.9541951272962873,
+        "recall_fresh": 0.5816615083163186,
+        "max_abs_diff": 0.20429516731249375
+      },
+      {
+        "scene": "20200319b.tif",
+        "dice_stored": 0.662418481099455,
+        "iou_stored": 0.49523597009918663,
+        "precision_stored": 0.784878169536802,
+        "recall_stored": 0.5730145616026612,
+        "dice_fresh": 0.7568968546827217,
+        "iou_fresh": 0.6088769524346577,
+        "precision_fresh": 0.874323410013236,
+        "recall_fresh": 0.6672777031909876,
+        "max_abs_diff": 0.11364098233547104
+      }
+    ],
+    "note": "Both are retained. Applies only when the checkpoint evaluated is the frozen baseline."
+  },
+  "frozen_baseline_sha256_at_end": "33688d9b6148f792ec9900f881b6241468c0915080808bd3f5458259edde24af",
+  "frozen_baseline_unchanged": true,
+  "duration_seconds": 48.0
+}

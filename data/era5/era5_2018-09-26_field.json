@@ -1,0 +1,83 @@
+{
+ "schema": "aegis.env_field.v1",
+ "kind": "wind10m",
+ "source": "ECMWF ERA5 hourly single levels (reanalysis-era5-single-levels) via Copernicus Climate Data Store",
+ "source_file": "data/era5/era5_2018-09-26.nc",
+ "variables": {
+  "u": "u10 (eastward 10 m wind, m/s)",
+  "v": "v10 (northward 10 m wind, m/s)"
+ },
+ "units": "m s-1",
+ "times": [
+  "2018-09-26T14:00:00Z",
+  "2018-09-26T15:00:00Z"
+ ],
+ "lats": [
+  29.0,
+  28.75
+ ],
+ "lons": [
+  -89.5,
+  -89.25,
+  -89.0
+ ],
+ "u": [
+  [
+   [
+    1.5265,
+    1.5734,
+    1.6974
+   ],
+   [
+    1.4982,
+    1.1398,
+    1.1398
+   ]
+  ],
+  [
+   [
+    2.301,
+    2.3635,
+    2.0773
+   ],
+   [
+    2.3391,
+    2.2873,
+    1.9094
+   ]
+  ]
+ ],
+ "v": [
+  [
+   [
+    1.8571,
+    1.57,
+    1.5915
+   ],
+   [
+    1.5719,
+    1.613,
+    1.7272
+   ]
+  ],
+  [
+   [
+    2.5501,
+    1.9612,
+    1.6585
+   ],
+   [
+    1.9778,
+    1.7083,
+    1.4837
+   ]
+  ]
+ ],
+ "index_order": "[time][lat][lon]",
+ "provenance": {
+  "status": "REAL",
+  "extraction": "Values decoded from the NetCDF4/HDF5 data chunks of the source file (shuffle + deflate filters) and rounded to 4 decimals. Cross-checked: nearest-cell values at (29.0N, 89.0W) equal the ERA5 values previously hard-coded in server.ts (U10 1.697/2.077, V10 1.591/1.658 m/s at 14:00/15:00 UTC). Regenerate with: python scripts/extract_era5_field.py",
+  "temporal_coverage_note": "Only 2 hourly fields (14:00 and 15:00 UTC) were downloaded. Outside this window the drift engine holds the nearest field constant and labels those steps PERSISTED.",
+  "spatial_coverage_note": "Grid covers 28.75-29.0N, 89.5-89.0W. Positions outside the grid are clamped to the nearest edge and labelled EDGE_CLAMPED."
+ }
+}

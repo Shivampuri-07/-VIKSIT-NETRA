@@ -1,0 +1,55 @@
+# ---------------- dependencies / local environments
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------------- build and test output
+build/
+dist/
+dist-server/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# ---------------- secrets and local files (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.cdsapirc
+.DS_Store
+*.log
+
+# ---------------- training data and experiments (not in Git)
+ml/datasets/Radar_data.rar
+ml/datasets/radar_data/
+ml/checkpoints/candidates/*
+!ml/checkpoints/candidates/README.md
+# large visual-only evaluation overlays (hashes recorded in ml/baseline/BASELINE_v1.json)
+ml/results/overlays/
+# regenerable ~40 MB probability rasters of the real-scene inference (polygons/JSON are kept)
+ml/results/inference/*/unet_probability_*.tif
+ml/results/*.log
+
+# The production baseline checkpoint IS committed: ml/checkpoints/unet_oil_spill_best.pth
+
+# ---------------- data: raw/large data ignored, runtime + verification data kept
+data/*
+!data/sample/
+!data/ais/
+data/ais/*
+!data/ais/2018/
+!data/era5/
+!data/currents/
+!data/sentinel1/
+data/sentinel1/*
+!data/sentinel1/derived/
+!data/sentinel1/copernicus_sigma0_test.tif
+!data/sentinel1/copernicus_oil_probability.tif
