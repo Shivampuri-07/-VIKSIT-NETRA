@@ -1,4 +1,4 @@
-# VIKSIT-NETRA
+# 🇮🇳 VIKSIT-NETRA
 
 **AI-Powered Maritime Environmental Intelligence & Oil-Spill Attribution System**
 
