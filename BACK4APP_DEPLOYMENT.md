@@ -152,6 +152,60 @@ budget. **Open the URL yourself a few minutes before the judges do.**
 
 ---
 
+## Verified live deployment (20 Sep 2026)
+
+**Public URL: <https://viksitnetra-416jquzz.b4a.run>**
+
+Tested against the running public service, not locally:
+
+| Check | Result |
+| --- | --- |
+| `/api/health` | `healthy`, `unet_oil_spill_best`, 4 scenes, 11/12 data files present (the absent one is the training label mask, correctly excluded) |
+| Landing page + bundle | HTTP 200; `Launch Demo Investigation`, `PRECOMPUTED DEMO RESULT`, `LIVE MODEL INFERENCE`, `Reset demo`, `DEMO MODE` all present |
+| Orchestrator | `LANGGRAPH`, 12 nodes invoked, `llm_used: false`, `RULE_BASED_COMPUTATION` |
+| Detection | `MODEL_PREDICTION`, 53.455 km², 9 polygons — identical to local |
+| AIS | 13,104 real MarineCadastre records, 56 vessels, `synthetic: false` |
+| Candidates | 87 total, 8 high priority, 7 medium |
+| Drift | 300 particles, 12 h backward; 48 h forward, 4 snapshots, 97 centroid points, 40 tracks |
+| Hypotheses / evidence graph | 4 hypotheses; 29 nodes, 24 edges; 6 recommendations; report present |
+| `POST /api/demo/verify-inference` | HTTP 503 `MODEL_RUNTIME_UNAVAILABLE` — degrades honestly, never fabricates |
+| Upload of a non-raster | HTTP 503 `MODEL_RUNTIME_UNAVAILABLE` |
+| Security | 4/4 headers; path traversal 404 (raw and encoded); errors sanitised; unknown API route JSON 404 |
+| Basemap | `mode: public` — works with no CARTO key |
+| SAR overlay asset | HTTP 200, 465,777 bytes |
+| `/api/selftest` | `passed: true` |
+
+### Known limitation: ~85 s per investigation
+
+Measured over four runs (warm and cold alike): **81 s, 88 s, 92 s, 97 s**. Profiling the live
+instance attributes **96.9 %** of that to a single node:
+
+| Node | Live | Local | Ratio |
+| --- | --- | --- | --- |
+| `evidence_fusion` | **78,496 ms** | 360 ms | **218x** |
+| `forward_forecast` | 1,196 ms | 44 ms | 27x |
+| `backward_origin` | 924 ms | 30 ms | 31x |
+
+The short nodes are ~30x slower while the long one is 218x slower, which is the signature of CPU
+quota throttling: brief nodes consume burst credit, and the sustained node is throttled to the floor.
+It is the free tier's CPU share, not a defect in the application.
+
+**Progress is not visible while it runs.** Back4App fronts containers with AWS CloudFront
+(`via: 1.1 …cloudfront.net`, `x-amz-cf-pop: MAA50-P1`), which buffers the SSE stream and strips the
+`X-Accel-Buffering: no` header the server already sets. Measured: the server emitted events across
+80 s, but all 25 arrived in one 0.6 s burst. The workflow stepper therefore stays static and then
+jumps to complete. The UI still shows a "Running" state throughout, so it is not a blank screen.
+
+Neither issue affects correctness: every figure above matches the local run exactly.
+
+Two mitigations exist if this matters later, neither applied here by choice:
+polling `/api/investigations/:id` every ~2 s as a fallback (plain GETs are not buffered, ~0.65 s) so
+the stepper animates; or more CPU on a paid tier.
+
+**Concurrency:** `AEGIS_MAX_CONCURRENT_JOBS=1`, so a second simultaneous investigation receives
+HTTP 429 until the first finishes. Verified working as designed. With ~85 s runs, two judges clicking
+at the same moment will queue.
+
 ## Judge checklist
 
 | # | Step | Expected |
