@@ -32,3 +32,12 @@ ml/results/overlays
 data/sentinel1/event_predictions
 data/sentinel1/*.png
 data/sentinel1/S1A_*.tif
+
+# Large research artifacts that are NOT copied into either image (keeps the build context small).
+# These are git-ignored too, so they are never in Render's build context either.
+# NOTE: backend/ and tests/ are deliberately NOT excluded — Dockerfile.api copies backend/, and
+# .dockerignore applies to every Dockerfile built from this context.
+ml/results/inference/*/unet_probability_*.tif
+ml/results/inference/*/unet_mask_*.tif
+data/sentinel1/copernicus_*.tif
+PACKAGE_SHA256SUMS.txt

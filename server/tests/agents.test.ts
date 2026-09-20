@@ -19,6 +19,7 @@ import { runDrift } from "../lib/drift";
 import { parseMarineCadastreCsv } from "../lib/ais";
 import { validateFeedback } from "../lib/review";
 import { loadCapabilities } from "../lib/capabilities";
+import { searchEvidence } from "../lib/evidence_search";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const svc = new SceneService(ROOT);
@@ -228,6 +229,57 @@ test("review priority + feedback records", async () => {
   assert.equal(validateFeedback({ investigation_id: inv.id, target: "vessel", verdict: "rejected", mmsi: "367642980" }, exists).ok, true);
   assert.equal(validateFeedback({ investigation_id: inv.id, target: "vessel", verdict: "maybe", mmsi: "1" }, exists).ok, false);
   assert.equal(validateFeedback({ investigation_id: "nope", target: "detection", verdict: "confirmed" }, exists).ok, false);
+});
+
+test("evidence search: deterministic, and every value comes from the investigation state", async () => {
+  const inv = await run(svc);
+  const st = inv.state as any;
+  const top = st.attribution!.candidates[0];
+
+  // 1. ranking query returns the engine's own order and scores
+  const a = searchEvidence(st, "Which vessels have the strongest evidence?");
+  assert.equal(a.intent, "top_candidates");
+  assert.equal(a.hits[0].mmsi, top.mmsi);
+  assert.equal(a.hits[0].score, top.composite_score);
+  assert.deepEqual(a.hits[0].supporting, top.why_priority);
+  assert.deepEqual(a.hits[0].contradicting, top.contradicting_evidence);
+
+  // 2. a named vessel resolves to that vessel only
+  const byName = searchEvidence(st, `Show evidence for ${top.vessel_name}`);
+  assert.equal(byName.intent, "vessel_detail");
+  assert.equal(byName.hits[0].mmsi, top.mmsi);
+  assert.equal(searchEvidence(st, `Why is ${top.mmsi} a candidate?`).hits[0].mmsi, top.mmsi);
+
+  // 3. an unknown vessel is reported as unmatched, never invented
+  const miss = searchEvidence(st, "Show evidence for NOT_A_REAL_SHIP_XYZ");
+  assert.ok(miss.notes.some((n) => /none matched/i.test(n)));
+  assert.ok(miss.hits.every((h) => st.attribution!.candidates.some((c: any) => c.mmsi === h.mmsi)));
+
+  // 4. every returned MMSI exists in the state, for every supported intent
+  for (const q of ["closest to the origin", "show the AIS evidence", "what evidence is missing?", "how big is the spill?"]) {
+    for (const h of searchEvidence(st, q).hits) {
+      if (h.mmsi) assert.ok(st.attribution!.candidates.some((c: any) => c.mmsi === h.mmsi), `${q} invented ${h.mmsi}`);
+    }
+  }
+
+  // 5. missing-evidence answers are drawn from the hypotheses/uncertainty/warnings already recorded
+  const gaps = searchEvidence(st, "what evidence is missing?");
+  assert.equal(gaps.intent, "missing_evidence");
+  const known = [
+    ...st.hypotheses!.flatMap((h: any) => h.missing_evidence ?? []),
+    ...st.uncertainty!.components.map((c: any) => c.basis),
+    ...st.warnings,
+  ];
+  for (const f of gaps.hits[0].facts) assert.ok(known.includes(f.value), `unknown gap text: ${f.value}`);
+
+  // 6. deterministic: same query, same answer
+  assert.deepEqual(searchEvidence(st, "top vessels"), searchEvidence(st, "top vessels"));
+});
+
+test("evidence search without attribution says additional data is required", () => {
+  const answer = searchEvidence({ ais: null, hypotheses: [], warnings: [] }, "which vessels have the strongest evidence?");
+  assert.equal(answer.hits.length, 0);
+  assert.match(answer.notes.join(" "), /additional investigation data is required/i);
 });
 
 test("capability registry is honest", () => {

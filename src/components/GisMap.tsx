@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Layers, Eye, EyeOff, Maximize2, Minimize2, Compass, Download, Route, Wind, Waves, Target, Crosshair, Milestone, ScanSearch, Play, Pause, SkipBack, SkipForward, ChevronDown, ChevronUp, Info, TriangleAlert } from "lucide-react";
+import { Layers, Maximize2, Minimize2, Compass, FileDown, Route, Wind, Waves, Target, Crosshair, Milestone, ScanSearch, Play, Pause, SkipBack, SkipForward, ChevronDown, Info, TriangleAlert, Check } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type {
   Scene, SpillDetection, DriftSimulation, CandidateRanking, VesselScoreDetail, DriftResult, EnvironmentState, GridVector,
 } from "../types";
-import { fmtLat, fmtLon, fmtLatLon, fmt, utc, horizonColor, statusColor } from "../lib/format";
+import { fmtLat, fmtLon, fmtLatLon, fmt, utc, horizonColor, statusColor, statusLabel } from "../lib/format";
 
 interface GisMapProps {
   scene: Scene | null;
@@ -41,8 +41,15 @@ const LAYER_HINTS: Record<LayerKey, string> = {
   ais: "AIS tracks of ranked candidate vessels (leads, not proof)",
 };
 const LAYER_COLORS: Record<LayerKey, string> = {
-  sar: "#58A6FF", spill: "#FF4444", reference: "#e3b341", backtrack: "#00D9FF", origin: "#79C0FF", forecast: "#f0883e", wind: "#e3b341", current: "#56d4dd", ais: "#AFF5B4",
+  sar: "#1e4e82", spill: "#c5303a", reference: "#b7791f", backtrack: "#0e7490", origin: "#1e4e82", forecast: "#225ea8", wind: "#b7791f", current: "#2c7a7b", ais: "#16803a",
 };
+/** Layer groups for the layer popover (presentation only; the layers themselves are unchanged). */
+const LAYER_GROUPS: { group: string; keys: LayerKey[] }[] = [
+  { group: "Detection", keys: ["sar", "spill", "reference"] },
+  { group: "Drift", keys: ["backtrack", "origin", "forecast"] },
+  { group: "Environment", keys: ["wind", "current"] },
+  { group: "AIS", keys: ["ais"] },
+];
 
 const RAD = Math.PI / 180;
 /** Guards every fly/zoom target: rejects NaN and the (0,0) "null island" sentinel. */
@@ -63,7 +70,7 @@ export function destination(lat: number, lon: number, bearingDeg: number, km: nu
 function arrowIcon(bearing: number, color: string, size = 14) {
   return L.divIcon({
     className: "aegis-arrow",
-    html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;transform:rotate(${bearing}deg);color:${color};font-size:${size}px;line-height:1;text-shadow:0 0 2px #0D1117,0 0 3px #0D1117;">▲</div>`,
+    html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;transform:rotate(${bearing}deg);color:${color};font-size:${size}px;line-height:1;text-shadow:0 0 2px #fff,0 0 3px #fff;">▲</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -98,7 +105,7 @@ export const GisMap: React.FC<GisMapProps> = ({
   });
   const [horizon, setHorizon] = useState<number | "ALL">("ALL");
   const [legendOpen, setLegendOpen] = useState(focusMode);
-  const [layersOpen, setLayersOpen] = useState(true);
+  const [layersOpen, setLayersOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [basemap, setBasemap] = useState<{ mode: "proxy" | "public"; tiles: string } | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -127,8 +134,16 @@ export const GisMap: React.FC<GisMapProps> = ({
   // ------------------------------------------------------------ basemap (CARTO key stays on the server)
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/config/basemap").then((r) => r.json()).then((d) => { if (!cancelled) setBasemap({ mode: d.mode, tiles: d.tiles }); })
-      .catch(() => { if (!cancelled) setBasemap({ mode: "public", tiles: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" }); });
+    // Light institutional theme: when no server-side key is configured, use CARTO's light public basemap
+    // (the dark variant would fight the UI). The proxied style is already light.
+    const LIGHT_PUBLIC = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+    fetch("/api/config/basemap")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        setBasemap({ mode: d.mode, tiles: d.mode === "proxy" ? d.tiles : LIGHT_PUBLIC });
+      })
+      .catch(() => { if (!cancelled) setBasemap({ mode: "public", tiles: LIGHT_PUBLIC }); });
     return () => { cancelled = true; };
   }, []);
   useEffect(() => {
@@ -168,7 +183,7 @@ export const GisMap: React.FC<GisMapProps> = ({
     if (scene) {
       const [minLon, minLat, maxLon, maxLat] = scene.bbox;
       const g = L.layerGroup();
-      g.addLayer(L.rectangle([[minLat, minLon], [maxLat, maxLon]], { color: "#58A6FF", weight: 1.5, dashArray: "4, 4", fillOpacity: 0.03, pane: "sar-pane" })
+      g.addLayer(L.rectangle([[minLat, minLon], [maxLat, maxLon]], { color: "#1e4e82", weight: 1.5, dashArray: "5, 5", fillOpacity: 0.02, pane: "sar-pane" })
         .bindTooltip(`SAR frame: ${scene.scene_id}<br/>${scene.satellite}${scene.synthetic ? "<br/><b>SYNTHETIC DEMO</b>" : ""}`, { sticky: true, ...tipCls }));
       groups.sar = g;
       lb.sar = [[minLat, minLon], [maxLat, maxLon]];
@@ -184,13 +199,13 @@ export const GisMap: React.FC<GisMapProps> = ({
       parts.forEach((ring, i) => {
         const ll = ring.map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
         all.push(...ll);
-        g.addLayer(L.polygon(ll, { color: "#FF4444", weight: i === 0 ? 2 : 1.2, fillColor: "#FF4444", fillOpacity: i === 0 ? 0.3 : 0.22, dashArray: "3, 3", pane: "spill-pane" }).bindPopup(
-          `<div class="text-xs font-mono"><div style="color:#FF4444;font-weight:700">Predicted slick S1_${detection.spill_id}${parts.length > 1 ? ` · part ${i + 1}/${parts.length}` : ""}</div>
+        g.addLayer(L.polygon(ll, { color: "#c5303a", weight: i === 0 ? 2.2 : 1.4, fillColor: "#c5303a", fillOpacity: i === 0 ? 0.26 : 0.18, pane: "spill-pane" }).bindPopup(
+          `<div class="text-xs font-mono"><div style="color:#c5303a;font-weight:600">Predicted slick S1_${detection.spill_id}${parts.length > 1 ? ` · part ${i + 1}/${parts.length}` : ""}</div>
            Total area: ${fmt(geo.area_km2)} km² · Perimeter ${fmt(geo.perimeter_km, 1)} km<br/>Axis: ${fmt(geo.orientation_deg, 1)}° · Elongation ${fmt(geo.elongation ?? null)}<br/>
            Observation: ${utc(detection.detection_time)}<br/>Outline: <span style="color:${statusColor(detection.geometry_source)}">${srcLabel}</span><br/><i>A model prediction, not a confirmed oil footprint.</i></div>`));
       });
       if (validLatLon(geo.centroid)) {
-        g.addLayer(L.circleMarker(geo.centroid, { radius: 5, color: "#fff", weight: 2, fillColor: "#FF4444", fillOpacity: 1, pane: "spill-pane" })
+        g.addLayer(L.circleMarker(geo.centroid, { radius: 5, color: "#fff", weight: 2, fillColor: "#c5303a", fillOpacity: 1, pane: "spill-pane" })
           .bindTooltip(`Slick centroid ${fmtLatLon(geo.centroid)}`, tipCls));
       }
       groups.spill = g;
@@ -205,8 +220,8 @@ export const GisMap: React.FC<GisMapProps> = ({
       for (const ring of detection.reference_label.parts) {
         const ll = ring.map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
         all.push(...ll);
-        g.addLayer(L.polygon(ll, { color: "#e3b341", weight: 2, dashArray: "8, 5", fill: false, pane: "sar-pane" }).bindPopup(
-          `<div class="text-xs font-mono"><div style="color:#e3b341;font-weight:700">REFERENCE_LABEL (evaluation only)</div>
+        g.addLayer(L.polygon(ll, { color: "#b7791f", weight: 2, dashArray: "8, 5", fill: false, pane: "sar-pane" }).bindPopup(
+          `<div class="text-xs font-mono"><div style="color:#b7791f;font-weight:600">REFERENCE_LABEL (evaluation only)</div>
            Labelled mask: ${fmt(detection.reference_label.area_km2)} km² · ${detection.reference_label.pixel_count} px<br/><i>Not a model prediction; not used for drift or attribution.</i></div>`));
       }
       groups.reference = g;
@@ -218,17 +233,17 @@ export const GisMap: React.FC<GisMapProps> = ({
       const g = L.layerGroup();
       for (const track of drift.particle_trajectories ?? []) {
         const ll = track.filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1])).map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
-        if (ll.length >= 2) g.addLayer(L.polyline(ll, { color: "#79C0FF", weight: 1, opacity: 0.35, dashArray: "3, 5", pane: "drift-pane" }));
+        if (ll.length >= 2) g.addLayer(L.polyline(ll, { color: "#1e4e82", weight: 1, opacity: 0.22, dashArray: "3, 5", pane: "drift-pane" }));
       }
       const path = (engine?.centroid_path ?? []).map((c) => [c.lat, c.lon] as L.LatLngTuple);
       if (path.length >= 2) {
-        g.addLayer(L.polyline(path, { color: "#0D1117", weight: 8, opacity: 0.8, pane: "backtrack-pane" }));
-        g.addLayer(L.polyline(path, { color: "#00D9FF", weight: 3.5, pane: "backtrack-pane" })
+        g.addLayer(L.polyline(path, { color: "#ffffff", weight: 7, opacity: 0.9, pane: "backtrack-pane" }));
+        g.addLayer(L.polyline(path, { color: "#0e7490", weight: 3.2, pane: "backtrack-pane" })
           .bindTooltip(`<div class="font-mono"><b>ENSEMBLE BACKTRACK</b><br/>Centroid of ${engine?.num_particles} particles<br/>T0 → T-${fmt(engine?.hours, 1)} h</div>`, { sticky: true, ...tipCls }));
         for (let i = 2; i < path.length - 1; i += 4) {
           const a = path[i], b = path[i + 1];
           const brg = (Math.atan2((b[1] - a[1]) * Math.cos(a[0] * RAD), b[0] - a[0]) / RAD + 360) % 360;
-          g.addLayer(L.marker(a, { icon: arrowIcon(brg, "#00D9FF", 12), interactive: false, pane: "backtrack-pane" }));
+          g.addLayer(L.marker(a, { icon: arrowIcon(brg, "#0e7490", 12), interactive: false, pane: "backtrack-pane" }));
         }
         bounds.push(...path);
         lb.backtrack = path;
@@ -242,13 +257,13 @@ export const GisMap: React.FC<GisMapProps> = ({
       for (const sn of engine?.snapshots ?? []) {
         if (sn.hours === engine?.hours) continue;
         const ll = sn.hull.map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
-        if (ll.length >= 4) g.addLayer(L.polygon(ll, { color: "#79C0FF", weight: 0.8, opacity: 0.4, fillOpacity: 0.03, pane: "backtrack-pane" })
+        if (ll.length >= 4) g.addLayer(L.polygon(ll, { color: "#1e4e82", weight: 0.8, opacity: 0.35, fillOpacity: 0.03, pane: "backtrack-pane" })
           .bindTooltip(`Origin corridor T-${sn.hours} h · P90 ${fmt(sn.r90_km)} km`, { sticky: true, ...tipCls }));
       }
       const hull = po.uncertainty_polygon.map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
       if (hull.length >= 4) {
-        g.addLayer(L.polygon(hull, { color: "#79C0FF", weight: 2, dashArray: "5, 5", fillColor: "#79C0FF", fillOpacity: 0.12, pane: "backtrack-pane" }).bindPopup(
-          `<div class="text-xs font-mono"><div style="color:#79C0FF;font-weight:700">Origin hypothesis region (P90 particle hull)</div>
+        g.addLayer(L.polygon(hull, { color: "#1e4e82", weight: 2, dashArray: "6, 4", fillColor: "#1e4e82", fillOpacity: 0.10, pane: "backtrack-pane" }).bindPopup(
+          `<div class="text-xs font-mono"><div style="color:#1e4e82;font-weight:600">Origin hypothesis region (P90 particle hull)</div>
            Centroid: ${fmtLatLon(po.centroid)}<br/>P90 radius: ${fmt(po.uncertainty_radius_km)} km<br/>Horizon: T-${fmt(drift.simulation_duration_hours, 1)} h (analyst-set)<br/>
            Wind: ${fmt(drift.environmental_parameters.wind_speed_knots, 1)} kn [${drift.environmental_parameters.wind_status ?? ""}]<br/>
            Current: ${drift.environmental_parameters.current_speed_knots === null ? "not available" : fmt(drift.environmental_parameters.current_speed_knots, 1) + " kn"}</div>`));
@@ -257,10 +272,10 @@ export const GisMap: React.FC<GisMapProps> = ({
       }
       if (validLatLon(po.centroid)) {
         lb.origin = [...(lb.origin ?? []), po.centroid as L.LatLngTuple];
-        g.addLayer(L.circleMarker(po.centroid, { radius: 8, color: "#0D1117", weight: 3, fillColor: "#00D9FF", fillOpacity: 1, pane: "backtrack-pane" })
+        g.addLayer(L.circleMarker(po.centroid, { radius: 8, color: "#ffffff", weight: 3, fillColor: "#0e7490", fillOpacity: 1, pane: "backtrack-pane" })
           .bindTooltip(`<div class="font-mono"><b>ORIGIN HYPOTHESIS</b><br/>${fmtLatLon(po.centroid)}</div>`, tipCls));
         if (detection?.geometry?.centroid && validLatLon(detection.geometry.centroid)) {
-          g.addLayer(L.polyline([detection.geometry.centroid, po.centroid], { color: "#fff", weight: 1, opacity: 0.4, dashArray: "2, 6", pane: "backtrack-pane" }));
+          g.addLayer(L.polyline([detection.geometry.centroid, po.centroid], { color: "#17202a", weight: 1, opacity: 0.35, dashArray: "2, 6", pane: "backtrack-pane" }));
         }
       }
       groups.origin = g;
@@ -270,7 +285,7 @@ export const GisMap: React.FC<GisMapProps> = ({
     if (forward?.snapshots?.length) {
       const g = L.layerGroup();
       const path = forward.centroid_path.map((c) => [c.lat, c.lon] as L.LatLngTuple);
-      if (path.length >= 2) g.addLayer(L.polyline(path, { color: "#f0883e", weight: 2.5, dashArray: "6, 4", pane: "forecast-pane" })
+      if (path.length >= 2) g.addLayer(L.polyline(path, { color: "#225ea8", weight: 2.5, dashArray: "6, 4", pane: "forecast-pane" })
         .bindTooltip("Forecast ensemble-centroid path", { sticky: true, ...tipCls }));
       const snaps = forward.snapshots.filter((s) => horizon === "ALL" || s.hours === horizon);
       const fb: L.LatLngTuple[] = [];
@@ -284,12 +299,12 @@ export const GisMap: React.FC<GisMapProps> = ({
              ${utc(sn.time)}<br/>Centroid ${fmtLatLon(sn.centroid)}<br/>P50 / P90 radius ${fmt(sn.r50_km)} / ${fmt(sn.r90_km)} km<br/>
              P90 envelope area ${fmt(sn.hull_area_km2, 1)} km²<br/>Displacement ${fmt(sn.displacement_km)} km toward ${fmt(sn.displacement_bearing_deg, 0)}°<br/>
              Forcing REAL: wind ${(sn.wind_real_fraction * 100).toFixed(0)} % · current ${(sn.current_real_fraction * 100).toFixed(0)} %<br/>
-             ${unsupported ? `<span style="color:#f0883e">⚠ ${sn.forcing_support.reason}</span><br/>` : ""}<i>Hindcast-type transport envelope only (no weathering). Not an observation. Coastal exposure not assessed.</i></div>`));
+             ${unsupported ? `<span style="color:#b7791f">⚠ ${sn.forcing_support.reason}</span><br/>` : ""}<i>Hindcast-type transport envelope only (no weathering). Not an observation. Coastal exposure not assessed.</i></div>`));
           bounds.push(...hull);
           fb.push(...hull);
         }
         if (validLatLon(sn.centroid)) {
-          g.addLayer(L.circleMarker(sn.centroid, { radius: 4, color: "#0D1117", weight: 1.5, fillColor: col, fillOpacity: 1, pane: "forecast-pane" })
+          g.addLayer(L.circleMarker(sn.centroid, { radius: 4, color: "#ffffff", weight: 1.5, fillColor: col, fillOpacity: 1, pane: "forecast-pane" })
             .bindTooltip(`T+${sn.hours} h centroid`, tipCls));
         }
         if (horizon !== "ALL") {
@@ -301,8 +316,8 @@ export const GisMap: React.FC<GisMapProps> = ({
     }
 
     if (environment) {
-      groups.wind = vectorLayer(environment.wind_grid_at_observation ?? [], "#e3b341", 5, "ERA5 10 m wind", "env-pane");
-      groups.current = vectorLayer(environment.current_grid_at_observation ?? [], "#56d4dd", 25, "Surface current", "env-pane");
+      groups.wind = vectorLayer(environment.wind_grid_at_observation ?? [], "#b7791f", 5, "Wind 10 m", "env-pane");
+      groups.current = vectorLayer(environment.current_grid_at_observation ?? [], "#2c7a7b", 25, "Surface current", "env-pane");
     }
 
     if (attribution?.top_candidates?.length) {
@@ -312,7 +327,7 @@ export const GisMap: React.FC<GisMapProps> = ({
         const sel = selectedVessel?.mmsi === vessel.mmsi;
         const high = vessel.priority_level === "HIGH PRIORITY CANDIDATE";
         const med = vessel.priority_level === "MEDIUM PRIORITY CANDIDATE";
-        const color = sel ? "#AFF5B4" : high ? "#FF4444" : med ? "#d29922" : "#8B949E";
+        const color = sel ? "#16803a" : high ? "#c53030" : med ? "#b7791f" : "#667085";
         const ll = vessel.track_coordinates.filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1])).map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
         if (ll.length < 2) continue;
         const line = L.polyline(ll, { color, weight: sel ? 3.5 : high ? 2.2 : 1.3, opacity: sel ? 1 : high ? 0.85 : 0.5, dashArray: sel ? undefined : "3, 3", pane: "vessel-pane" });
@@ -320,7 +335,7 @@ export const GisMap: React.FC<GisMapProps> = ({
         line.bindTooltip(`<div class="font-mono"><b>#${vessel.rank} ${vessel.vessel_name}</b> (MMSI ${vessel.mmsi})<br/>Score ${vessel.composite_score.toFixed(3)} · ${vessel.priority_level}</div>`, { sticky: true, ...tipCls });
         g.addLayer(line);
         if (validLatLon(vessel.metrics.cpa_coordinates)) {
-          const m = L.circleMarker(vessel.metrics.cpa_coordinates, { radius: sel ? 7 : high ? 5 : 3.5, color, weight: 2, fillColor: sel ? color : "#161B22", fillOpacity: 0.9, pane: "vessel-pane" });
+          const m = L.circleMarker(vessel.metrics.cpa_coordinates, { radius: sel ? 7 : high ? 5 : 3.5, color, weight: 2, fillColor: sel ? color : "#ffffff", fillOpacity: 0.95, pane: "vessel-pane" });
           m.on("click", () => onSelectVessel(vessel));
           m.bindPopup(`<div class="text-xs font-mono"><b>#${vessel.rank} ${vessel.vessel_name}</b><br/>MMSI ${vessel.mmsi} · ${vessel.vessel_type}<br/>
             Closest approach to slick: ${fmt(vessel.metrics.min_distance_to_slick_km ?? null)} km at ${utc(vessel.metrics.cpa_timestamp)}<br/>
@@ -400,117 +415,274 @@ export const GisMap: React.FC<GisMapProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, horizons.join(",")]);
 
-  const btn = "pointer-events-auto bg-[#161B22] hover:bg-[#21262D] border border-[#30363D] hover:border-[#58A6FF] rounded-[4px] px-2 py-1.5 shadow-lg cursor-pointer text-[10px] font-mono text-[#C9D1D9] flex items-center gap-1.5 disabled:opacity-35 disabled:cursor-not-allowed";
+  const ctl = "vn-float pointer-events-auto flex items-center";
+  const ctlBtn =
+    "px-2.5 py-1.5 text-[12px] font-medium text-ink hover:bg-subtle disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer whitespace-nowrap";
 
   return (
-    <div className="relative w-full h-full bg-[#0D1117] overflow-hidden">
+    <div className="relative w-full h-full bg-subtle overflow-hidden">
       <div ref={containerRef} data-testid="gis-map" className="w-full h-full z-0" />
 
-      {/* ---- top: actions row, then layers / timeline */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex flex-col gap-2 pointer-events-none">
-        <div className="flex flex-wrap items-center gap-2">
-          {onToggleFocus && (
-            <button onClick={onToggleFocus} data-testid="focus-map-button" aria-pressed={focusMode}
-              className={`${btn} ${focusMode ? "!border-[#58A6FF] !text-[#79C0FF]" : ""}`}
-              title={focusMode ? "Exit focus map and restore the dashboard (Esc)" : "Focus map: make the map the full-screen workspace (panels collapse into drawers)"}
-              aria-label={focusMode ? "Exit focus map" : "Enter focus map"}>
-              {focusMode ? <Minimize2 className="w-3.5 h-3.5 text-[#58A6FF]" /> : <Maximize2 className="w-3.5 h-3.5 text-[#58A6FF]" />}
-              {focusMode ? "EXIT FOCUS" : "FOCUS MAP"}
-            </button>
-          )}
-          <div className="pointer-events-auto bg-[#161B22] border border-[#30363D] rounded-[4px] shadow-lg flex items-center" role="group" aria-label="Fit map view">
-            <span className="px-2 text-[9px] font-mono text-[#8B949E] uppercase hidden sm:inline">Fit</span>
-            <button onClick={() => fitTo(["spill"])} disabled={!has("spill")} className="px-2 py-1.5 text-[10px] font-mono text-[#C9D1D9] hover:bg-[#21262D] disabled:opacity-35 flex items-center gap-1 cursor-pointer border-l border-[#30363D]" title="Fit to the slick" aria-label="Fit to spill"><Target className="w-3.5 h-3.5 text-[#FF4444]" />Spill</button>
-            <button onClick={() => fitTo(["origin"])} disabled={!has("origin")} className="px-2 py-1.5 text-[10px] font-mono text-[#C9D1D9] hover:bg-[#21262D] disabled:opacity-35 flex items-center gap-1 cursor-pointer border-l border-[#30363D]" title="Fit to the origin zone" aria-label="Fit to origin"><Crosshair className="w-3.5 h-3.5 text-[#79C0FF]" />Origin</button>
-            <button onClick={() => fitTo(["forecast"])} disabled={!has("forecast")} className="px-2 py-1.5 text-[10px] font-mono text-[#C9D1D9] hover:bg-[#21262D] disabled:opacity-35 flex items-center gap-1 cursor-pointer border-l border-[#30363D]" title="Fit to the forecast impact zones" aria-label="Fit to forecast"><Milestone className="w-3.5 h-3.5 text-[#f0883e]" />Forecast</button>
-            <button onClick={() => fitTo(["spill", "origin", "backtrack", "forecast", "ais"])} className="px-2 py-1.5 text-[10px] font-mono text-[#C9D1D9] hover:bg-[#21262D] flex items-center gap-1 cursor-pointer border-l border-[#30363D] rounded-r-[4px]" title="Fit to all evidence (slick, backtrack, origin, forecast, AIS tracks)" aria-label="Fit to all evidence"><ScanSearch className="w-3.5 h-3.5 text-[#AFF5B4]" />All</button>
-          </div>
-          <button onClick={resetZoom} className={btn} title="Fit the SAR scene extent" aria-label="Fit scene extent"><Compass className="w-3.5 h-3.5 text-[#58A6FF]" />Scene</button>
-          <button onClick={() => onDownloadReport({ horizon })} disabled={!reportEnabled} data-testid="report-button"
-            className={`${btn} !text-[#AFF5B4] !border-[#238636] font-semibold`}
-            title={reportEnabled ? "Download colour-coded PDF incident report" : reportDisabledReason ?? "Report not available"} aria-label="Download incident report">
-            <Download className="w-3.5 h-3.5" /> REPORT
+      {/* ---- top-left: view actions */}
+      <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-start gap-2 pointer-events-none">
+        {onToggleFocus && (
+          <button
+            onClick={onToggleFocus}
+            data-testid="focus-map-button"
+            aria-pressed={focusMode}
+            className={`${ctl} ${ctlBtn} rounded-lg ${focusMode ? "text-navy border-navy-600/40" : ""}`}
+            title={focusMode ? "Exit focus map and restore the dashboard (Esc)" : "Focus map: make the map the full workspace"}
+          >
+            {focusMode ? <Minimize2 className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" /> : <Maximize2 className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" />}
+            {focusMode ? "Exit focus" : "Focus map"}
+          </button>
+        )}
+
+        <div className={`${ctl} divide-x divide-line overflow-hidden`} role="group" aria-label="Fit map view">
+          <span className="vn-label px-2.5 hidden sm:inline">Fit</span>
+          <button onClick={() => fitTo(["spill"])} disabled={!has("spill")} className={ctlBtn} title="Fit the map to the detected slick">
+            <Target className="w-3.5 h-3.5" style={{ color: LAYER_COLORS.spill }} aria-hidden="true" />
+            Spill
+          </button>
+          <button onClick={() => fitTo(["origin"])} disabled={!has("origin")} className={ctlBtn} title="Fit the map to the probable origin zone">
+            <Crosshair className="w-3.5 h-3.5" style={{ color: LAYER_COLORS.origin }} aria-hidden="true" />
+            Origin
+          </button>
+          <button onClick={() => fitTo(["forecast"])} disabled={!has("forecast")} className={ctlBtn} title="Fit the map to the forecast impact zones">
+            <Milestone className="w-3.5 h-3.5" style={{ color: LAYER_COLORS.forecast }} aria-hidden="true" />
+            Forecast
+          </button>
+          <button
+            onClick={() => fitTo(["spill", "origin", "backtrack", "forecast", "ais"])}
+            className={ctlBtn}
+            title="Fit the map to all evidence: slick, backtrack, origin, forecast and AIS tracks"
+          >
+            <ScanSearch className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" />
+            All
+          </button>
+          <button onClick={resetZoom} className={ctlBtn} title="Fit the SAR scene extent">
+            <Compass className="w-3.5 h-3.5 text-muted" aria-hidden="true" />
+            <span className="hidden md:inline">Scene</span>
           </button>
         </div>
 
-        <div className="flex flex-wrap items-start gap-2">
-          <div className="pointer-events-auto bg-[#161B22] border border-[#30363D] rounded-[6px] p-1.5 shadow-xl text-xs max-w-full">
-            <button onClick={() => setLayersOpen((o) => !o)} className="flex items-center gap-1.5 text-[10px] font-mono text-[#C9D1D9] cursor-pointer w-full" aria-expanded={layersOpen} aria-label="Toggle layer controls" title="Show or hide the layer controls">
-              <Layers className="w-3.5 h-3.5 text-[#58A6FF]" /> Layers {layersOpen ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
-            </button>
-            {layersOpen && (
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                {(Object.keys(LAYER_LABELS) as LayerKey[]).map((k) => (
-                  <button key={k} data-testid={`layer-${k}`} aria-pressed={visible[k]} onClick={() => setVisible((v) => ({ ...v, [k]: !v[k] }))}
-                    title={LAYER_HINTS[k]}
-                    className="px-2 py-0.5 rounded-[3px] text-[10px] font-mono border flex items-center gap-1 cursor-pointer"
-                    style={visible[k] ? { color: LAYER_COLORS[k], borderColor: LAYER_COLORS[k] + "66", background: LAYER_COLORS[k] + "22" } : { color: "#8B949E", borderColor: "#30363D", background: "#0D1117" }}>
-                    {visible[k] ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}{LAYER_LABELS[k]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {horizons.length > 0 && (
-            <div className="pointer-events-auto bg-[#161B22] border border-[#30363D] rounded-[6px] p-1.5 shadow-xl flex flex-wrap items-center gap-1" role="group" aria-label="Forecast timeline">
-              <span className="text-[9px] font-mono text-[#8B949E] mr-1 uppercase" title="Forward drift impact zone per horizon. A dashed zone is a persistence scenario: forcing coverage does not support a forecast.">Impact zone</span>
-              <button onClick={() => stepHorizon(-1)} className="text-[#8B949E] hover:text-[#C9D1D9] cursor-pointer" title="Previous horizon" aria-label="Previous horizon"><SkipBack className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setPlaying((p) => !p)} className="text-[#8B949E] hover:text-[#C9D1D9] cursor-pointer" title={playing ? "Pause the horizon animation" : "Play through the horizons (view only)"} aria-label={playing ? "Pause" : "Play"}>{playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}</button>
-              <button onClick={() => stepHorizon(1)} className="text-[#8B949E] hover:text-[#C9D1D9] cursor-pointer" title="Next horizon" aria-label="Next horizon"><SkipForward className="w-3.5 h-3.5" /></button>
-              {(["ALL", ...horizons] as (number | "ALL")[]).map((h) => (
-                <button key={String(h)} data-testid={`horizon-${h}`} aria-pressed={horizon === h} onClick={() => { setPlaying(false); setHorizon(h); }}
-                  title={h !== "ALL" && unsupportedHorizons.has(h as number) ? "Persistence scenario: real forcing coverage does not support this horizon as a forecast" : undefined}
-                  className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-mono border cursor-pointer flex items-center gap-0.5"
-                  style={horizon === h ? { color: h === "ALL" ? "#C9D1D9" : horizonColor(h as number), borderColor: h === "ALL" ? "#8B949E" : horizonColor(h as number), background: "#21262D" } : { color: "#8B949E", borderColor: "#30363D" }}>
-                  {h === "ALL" ? "All" : `T+${h}h`}{h !== "ALL" && unsupportedHorizons.has(h as number) && <TriangleAlert className="w-2.5 h-2.5 text-[#f0883e]" aria-label="not supported by forcing" />}
-                </button>
+        {/* layers popover */}
+        <div className="relative pointer-events-auto">
+          <button
+            onClick={() => setLayersOpen((o) => !o)}
+            aria-expanded={layersOpen}
+            className={`${ctl} ${ctlBtn} rounded-lg`}
+            title="Show or hide map layers"
+          >
+            <Layers className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" />
+            Layers
+            <ChevronDown className={`w-3 h-3 text-muted transition-transform ${layersOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+          {layersOpen && (
+            <div className="absolute left-0 mt-1.5 w-[270px] vn-float p-2 z-20 max-h-[60vh] overflow-y-auto">
+              {LAYER_GROUPS.map((grp) => (
+                <div key={grp.group} className="mb-1.5 last:mb-0">
+                  <div className="vn-label px-1.5 py-1">{grp.group}</div>
+                  {grp.keys.map((k) => (
+                    <button
+                      key={k}
+                      data-testid={`layer-${k}`}
+                      aria-pressed={visible[k]}
+                      onClick={() => setVisible((v) => ({ ...v, [k]: !v[k] }))}
+                      className="w-full flex items-start gap-2 px-1.5 py-1.5 rounded-lg hover:bg-subtle text-left cursor-pointer"
+                    >
+                      <span
+                        className="w-3.5 h-3.5 rounded-[4px] border flex items-center justify-center shrink-0 mt-px"
+                        style={
+                          visible[k]
+                            ? { background: LAYER_COLORS[k], borderColor: LAYER_COLORS[k] }
+                            : { borderColor: "#d0d5dd", background: "#fff" }
+                        }
+                        aria-hidden="true"
+                      >
+                        {visible[k] && <Check className="w-2.5 h-2.5 text-white" />}
+                      </span>
+                      <span className="min-w-0">
+                        <span className={`block text-[12px] leading-tight ${visible[k] ? "text-ink font-medium" : "text-muted"}`}>
+                          {LAYER_LABELS[k]}
+                        </span>
+                        <span className="block text-[10px] text-muted leading-snug">{LAYER_HINTS[k]}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex flex-wrap items-start gap-2 font-mono">
-          {drift?.engine && (
-            <div className="bg-[#161B22]/95 border border-[#00D9FF]/50 rounded-[5px] px-2.5 py-1.5 shadow-xl">
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#00D9FF]"><Route className="w-3.5 h-3.5" /> BACKTRACK T-{fmt(drift.engine.hours, 0)} h</div>
-              <div className="text-[9px] text-[#8B949E]">{drift.engine.num_particles} particles · P90 {fmt(drift.engine.final.r90_km, 1)} km · seed {drift.engine.seed}</div>
-            </div>
-          )}
-          {at && (
-            <div data-testid="env-badge" className="bg-[#161B22]/95 border border-[#30363D] rounded-[5px] px-2.5 py-1.5 shadow-xl text-[9px]">
-              <div className="flex items-center gap-1.5 text-[#e3b341]"><Wind className="w-3 h-3" /> {fmt(at.wind_speed_ms)} m/s from {fmt(at.wind_direction_from_deg, 0)}° <span style={{ color: statusColor(at.wind_status) }}>[{at.wind_status}]</span></div>
-              <div className="flex items-center gap-1.5 text-[#56d4dd]"><Waves className="w-3 h-3" /> {at.current_speed_ms === null ? "Current: NOT ASSESSED (no product)" : `${fmt(at.current_speed_ms)} m/s toward ${fmt(at.current_direction_to_deg, 0)}°`} <span style={{ color: statusColor(at.current_status) }}>[{at.current_status}]</span></div>
-              {environment?.low_wind_lookalike_risk && <div className="text-[#d29922]">⚠ low wind: look-alike risk</div>}
-            </div>
-          )}
-        </div>
+        <button
+          onClick={() => onDownloadReport({ horizon })}
+          disabled={!reportEnabled}
+          data-testid="report-button"
+          className={`${ctl} ${ctlBtn} rounded-lg ml-auto ${reportEnabled ? "!text-navy border-navy-600/40" : ""}`}
+          title={reportEnabled ? "Download the colour-coded PDF incident report" : reportDisabledReason ?? "Report not available"}
+        >
+          <FileDown className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" />
+          Report
+        </button>
       </div>
 
-      {/* ---- legend (collapsible) */}
-      <div className="absolute bottom-3 left-3 z-10 bg-[#161B22] border border-[#30363D] rounded-[6px] p-2 shadow-xl text-[10px] text-[#8B949E] max-w-[19rem] font-mono" data-testid="map-legend">
-        <button onClick={() => setLegendOpen((o) => !o)} className="w-full font-semibold text-[#C9D1D9] flex items-center justify-between cursor-pointer" aria-expanded={legendOpen} aria-label="Toggle legend">
-          <span className="flex items-center gap-1.5"><Info className="w-3.5 h-3.5 text-[#58A6FF]" /> Legend <span className="text-[9px] text-[#8B949E] font-normal">WGS84</span></span>
-          {legendOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+      {/* ---- forecast timeline */}
+      {horizons.length > 0 && (
+        <div className="absolute top-[58px] left-3 z-10 pointer-events-auto">
+          <div className={`${ctl} gap-0.5 px-1.5 py-1 flex-wrap max-w-[calc(100vw-2rem)]`} role="group" aria-label="Forecast horizon">
+            <span className="vn-label px-1" title="Forward drift impact zone per horizon. A dashed zone is a persistence scenario: forcing coverage does not support a forecast.">
+              Impact
+            </span>
+            <button onClick={() => stepHorizon(-1)} className="p-1 rounded text-muted hover:text-ink hover:bg-subtle cursor-pointer" title="Previous horizon" aria-label="Previous horizon">
+              <SkipBack className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setPlaying((p) => !p)}
+              className="p-1 rounded text-muted hover:text-ink hover:bg-subtle cursor-pointer"
+              title={playing ? "Pause the horizon animation" : "Step through the horizons (view only)"}
+              aria-label={playing ? "Pause" : "Play"}
+            >
+              {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            </button>
+            <button onClick={() => stepHorizon(1)} className="p-1 rounded text-muted hover:text-ink hover:bg-subtle cursor-pointer" title="Next horizon" aria-label="Next horizon">
+              <SkipForward className="w-3.5 h-3.5" />
+            </button>
+            {(["ALL", ...horizons] as (number | "ALL")[]).map((h) => {
+              const active = horizon === h;
+              const unsupported = h !== "ALL" && unsupportedHorizons.has(h as number);
+              return (
+                <button
+                  key={String(h)}
+                  data-testid={`horizon-${h}`}
+                  aria-pressed={active}
+                  onClick={() => {
+                    setPlaying(false);
+                    setHorizon(h);
+                  }}
+                  title={unsupported ? "Persistence scenario: real forcing coverage does not support this horizon as a forecast" : undefined}
+                  className={`px-1.5 py-0.5 rounded-md text-[11px] font-medium cursor-pointer flex items-center gap-0.5 border ${
+                    active ? "bg-subtle border-line-strong text-ink" : "border-transparent text-muted hover:text-ink"
+                  }`}
+                  style={active && h !== "ALL" ? { color: horizonColor(h as number), borderColor: horizonColor(h as number) + "66" } : undefined}
+                >
+                  {h === "ALL" ? "All" : `T+${h}h`}
+                  {unsupported && <TriangleAlert className="w-2.5 h-2.5 text-warn" aria-label="not supported by forcing" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ---- context readouts */}
+      <div className="absolute top-[104px] left-3 z-10 flex flex-col gap-1.5 pointer-events-none max-w-[min(20rem,60vw)]">
+        {drift?.engine && (
+          <div className="vn-float px-2.5 py-1.5">
+            <div className="text-[11px] font-semibold text-ink flex items-center gap-1.5">
+              <Route className="w-3.5 h-3.5" style={{ color: LAYER_COLORS.backtrack }} aria-hidden="true" />
+              Backtrack T−{fmt(drift.engine.hours, 0)} h
+            </div>
+            <div className="text-[10.5px] text-muted vn-num">
+              {drift.engine.num_particles} particles · P90 {fmt(drift.engine.final.r90_km, 1)} km · seed {drift.engine.seed}
+            </div>
+          </div>
+        )}
+        {at && (
+          <div data-testid="env-badge" className="vn-float px-2.5 py-1.5 space-y-0.5">
+            <div className="text-[10.5px] text-ink flex items-center gap-1.5">
+              <Wind className="w-3 h-3" style={{ color: LAYER_COLORS.wind }} aria-hidden="true" />
+              <span className="vn-num">
+                {fmt(at.wind_speed_ms)} m/s from {fmt(at.wind_direction_from_deg, 0)}°
+              </span>
+              <span className="text-muted">{statusLabel(at.wind_status)}</span>
+            </div>
+            <div className="text-[10.5px] text-ink flex items-center gap-1.5">
+              <Waves className="w-3 h-3" style={{ color: LAYER_COLORS.current }} aria-hidden="true" />
+              <span className="vn-num">
+                {at.current_speed_ms === null ? "Current not assessed" : `${fmt(at.current_speed_ms)} m/s toward ${fmt(at.current_direction_to_deg, 0)}°`}
+              </span>
+              <span className="text-muted">{statusLabel(at.current_status)}</span>
+            </div>
+            {environment?.low_wind_lookalike_risk && (
+              <div className="text-[10.5px] text-warn flex items-center gap-1.5">
+                <TriangleAlert className="w-3 h-3" aria-hidden="true" />
+                Low wind: look-alike risk
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ---- legend */}
+      <div className="absolute bottom-3 left-3 z-10 vn-float p-2 max-w-[18rem]" data-testid="map-legend">
+        <button
+          onClick={() => setLegendOpen((o) => !o)}
+          aria-expanded={legendOpen}
+          className="w-full flex items-center justify-between gap-2 text-[12px] font-medium text-ink cursor-pointer"
+        >
+          <span className="flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-navy-600" aria-hidden="true" />
+            Legend
+            <span className="vn-label">WGS84</span>
+          </span>
+          <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform ${legendOpen ? "" : "rotate-180"}`} aria-hidden="true" />
         </button>
         {legendOpen && (
-          <div className="mt-1.5 space-y-1.5">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-[#FF4444] inline-block" />Slick (model prediction)</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 inline-block border-t-2 border-dashed border-[#e3b341]" />Reference label (eval only)</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-[#00D9FF] inline-block" />Backtrack</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-[#79C0FF]/60 inline-block" />Origin zone (P90)</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-[#e3b341] inline-block" />Wind (5 km per m/s)</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-[#56d4dd] inline-block" />Current (25 km per m/s)</span>
-              {[6, 12, 24, 48].map((h) => <span key={h} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 inline-block" style={{ background: horizonColor(h) }} />Impact T+{h}h</span>)}
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-[#FF4444] inline-block" />High-priority AIS lead</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-[#AFF5B4] inline-block" />Selected AIS</span>
+          <div className="mt-2 space-y-1.5">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10.5px] text-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: LAYER_COLORS.spill }} />
+                Slick (model)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 border-t-2 border-dashed shrink-0" style={{ borderColor: LAYER_COLORS.reference }} />
+                Reference label
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 shrink-0" style={{ background: LAYER_COLORS.backtrack }} />
+                Backtrack
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-[3px] shrink-0 opacity-60" style={{ background: LAYER_COLORS.origin }} />
+                Origin zone
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 shrink-0" style={{ background: LAYER_COLORS.wind }} />
+                Wind
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 shrink-0" style={{ background: LAYER_COLORS.current }} />
+                Current
+              </span>
+              {[6, 12, 24, 48].map((h) => (
+                <span key={h} className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: horizonColor(h) }} />
+                  Impact T+{h}h
+                </span>
+              ))}
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 shrink-0" style={{ background: "#c53030" }} />
+                High-priority lead
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 shrink-0" style={{ background: "#16803a" }} />
+                Selected vessel
+              </span>
             </div>
-            <div className="text-[9px] leading-snug border-t border-[#30363D] pt-1">Dashed impact zone = persistence scenario (real forcing coverage does not support a forecast). AIS tracks are investigative leads, not proof of causation.</div>
+            <p className="text-[10px] text-muted leading-snug border-t border-line pt-1.5">
+              Dashed impact zone = persistence scenario (real forcing does not support a forecast). AIS tracks are investigative leads, not proof
+              of causation.
+            </p>
             {selectedVessel && (
-              <div className="pt-1.5 border-t border-[#30363D] flex items-center justify-between text-[#AFF5B4]">
-                <span className="truncate max-w-[150px]">Focus: {selectedVessel.vessel_name}</span>
-                <button onClick={() => onSelectVessel(null)} className="text-[#8B949E] hover:text-[#C9D1D9] text-[9px] underline ml-2 cursor-pointer">[clear]</button>
+              <div className="pt-1.5 border-t border-line flex items-center justify-between gap-2">
+                <span className="text-[11px] text-ink truncate">
+                  Focus: <b>{selectedVessel.vessel_name}</b>
+                </span>
+                <button onClick={() => onSelectVessel(null)} className="text-[10.5px] text-navy-600 hover:underline cursor-pointer shrink-0">
+                  Clear
+                </button>
               </div>
             )}
           </div>

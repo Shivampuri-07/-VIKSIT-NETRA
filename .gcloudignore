@@ -1,0 +1,52 @@
+# DEPRECATED — GCP/Cloud Run is no longer the deployment target for this project.
+# The active target is RENDER FREE (see render.yaml and RENDER_DEPLOYMENT.md).
+# Kept only so scripts/deploy-cloudrun.sh remains usable as a >= 2 GB reference deployment.
+#
+# What is uploaded to Cloud Build as the Docker build context.
+# Mirrors .dockerignore; anything excluded here never leaves this machine.
+
+# Secrets and local environments
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.venv
+venv
+env
+
+# Dependencies and build output (rebuilt inside the image)
+node_modules
+dist
+dist-server
+.vite
+coverage
+*.tsbuildinfo
+
+# Caches and OS files
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.DS_Store
+*.log
+
+# Training data, experiments and research archives are never part of an image
+ml/datasets/radar_data
+ml/datasets/*.rar
+ml/checkpoints/candidates
+ml/results/overlays
+ml/results/inference/*/unet_probability_*.tif
+ml/results/inference/*/unet_mask_*.tif
+
+# Large files not needed at runtime
+data/sentinel1/event_predictions
+data/sentinel1/*.png
+data/sentinel1/S1A_*.tif
+data/sentinel1/copernicus_*.tif
+backend
+tests
+dataset
+datasets
+PACKAGE_SHA256SUMS.txt

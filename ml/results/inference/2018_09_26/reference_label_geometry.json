@@ -1,7 +1,7 @@
 {
  "schema": "aegis.detection_geometry.v1",
  "scene_id": "GOM_S1A_20180926_REAL",
- "created_utc": "2026-09-19T13:26:14Z",
+ "created_utc": "2026-09-19T23:22:55Z",
  "source_mask": {
   "file": "2018_09_26.tif",
   "sha256": "4d8a7c191362b9902e0f07ef167dcf12ec16a89c7d37db1f49dc350a24662a7b",

@@ -51,5 +51,7 @@ data/ais/*
 !data/sentinel1/
 data/sentinel1/*
 !data/sentinel1/derived/
+# demo-scene SAR raster bundled for cloud deployment (see data/sentinel1/real/PROVENANCE.md)
+!data/sentinel1/real/
 !data/sentinel1/copernicus_sigma0_test.tif
 !data/sentinel1/copernicus_oil_probability.tif

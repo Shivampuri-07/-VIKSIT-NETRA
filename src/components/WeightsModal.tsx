@@ -67,41 +67,41 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 select-none">
-      <div className="bg-[#161B22] border border-[#30363D] rounded-[6px] max-w-md w-full p-5 shadow-2xl space-y-4">
+    <div className="fixed inset-0 z-50 bg-ink/30 backdrop-blur-[1px] flex items-center justify-center p-4 select-none">
+      <div className="bg-surface border border-line rounded-[6px] max-w-md w-full p-5 shadow-2xl space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#30363D] pb-3">
+        <div className="flex items-center justify-between border-b border-line pb-3">
           <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-[#58A6FF]" />
-            <h3 className="font-bold text-[#C9D1D9] text-sm">Attribution Scoring Weights</h3>
+            <Sliders className="w-4 h-4 text-navy-600" />
+            <h3 className="font-bold text-ink text-sm">Attribution Scoring Weights</h3>
           </div>
-          <button onClick={onClose} className="text-[#8B949E] hover:text-[#C9D1D9] cursor-pointer">
+          <button onClick={onClose} className="text-muted hover:text-ink cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <p className="text-xs text-[#8B949E] leading-relaxed">
+        <p className="text-xs text-muted leading-relaxed">
           Adjust the multi-factor objective weights for spatial proximity, temporal leeway, trajectory intersection, and vessel kinematics.
         </p>
 
         {/* Presets */}
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-[#8B949E] font-mono">Presets:</span>
+          <span className="text-[11px] text-muted font-mono">Presets:</span>
           <button
             onClick={() => applyPreset("BALANCED")}
-            className="px-2 py-1 bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[#C9D1D9] rounded-[4px] text-xs font-mono cursor-pointer"
+            className="px-2 py-1 bg-canvas hover:bg-subtle border border-line text-ink rounded-[4px] text-xs font-mono cursor-pointer"
           >
             Balanced
           </button>
           <button
             onClick={() => applyPreset("SPATIAL_HEAVY")}
-            className="px-2 py-1 bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[#C9D1D9] rounded-[4px] text-xs font-mono cursor-pointer"
+            className="px-2 py-1 bg-canvas hover:bg-subtle border border-line text-ink rounded-[4px] text-xs font-mono cursor-pointer"
           >
             Spatial
           </button>
           <button
             onClick={() => applyPreset("TEMPORAL_HEAVY")}
-            className="px-2 py-1 bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[#C9D1D9] rounded-[4px] text-xs font-mono cursor-pointer"
+            className="px-2 py-1 bg-canvas hover:bg-subtle border border-line text-ink rounded-[4px] text-xs font-mono cursor-pointer"
           >
             Temporal
           </button>
@@ -110,9 +110,9 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
         {/* Sliders */}
         <div className="space-y-3 text-xs">
           <div>
-            <div className="flex justify-between text-[#C9D1D9] mb-1 font-mono text-[11px]">
+            <div className="flex justify-between text-ink mb-1 font-mono text-[11px]">
               <span>Spatial Proximity:</span>
-              <span className="text-[#58A6FF]">{(Number(normSpatial) * 100).toFixed(0)}%</span>
+              <span className="text-navy-600">{(Number(normSpatial) * 100).toFixed(0)}%</span>
             </div>
             <input
               type="range"
@@ -121,14 +121,14 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
               step="0.05"
               value={spatial}
               onChange={(e) => setSpatial(parseFloat(e.target.value))}
-              className="w-full accent-[#58A6FF] cursor-pointer"
+              className="w-full accent-[#1e4e82] cursor-pointer"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-[#C9D1D9] mb-1 font-mono text-[11px]">
+            <div className="flex justify-between text-ink mb-1 font-mono text-[11px]">
               <span>Temporal Alignment:</span>
-              <span className="text-[#79C0FF]">{(Number(normTemporal) * 100).toFixed(0)}%</span>
+              <span className="text-navy-600">{(Number(normTemporal) * 100).toFixed(0)}%</span>
             </div>
             <input
               type="range"
@@ -137,14 +137,14 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
               step="0.05"
               value={temporal}
               onChange={(e) => setTemporal(parseFloat(e.target.value))}
-              className="w-full accent-[#79C0FF] cursor-pointer"
+              className="w-full accent-[#2c7a7b] cursor-pointer"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-[#C9D1D9] mb-1 font-mono text-[11px]">
+            <div className="flex justify-between text-ink mb-1 font-mono text-[11px]">
               <span>Trajectory Geometry:</span>
-              <span className="text-[#bc8cff]">{(Number(normTrajectory) * 100).toFixed(0)}%</span>
+              <span className="text-teal">{(Number(normTrajectory) * 100).toFixed(0)}%</span>
             </div>
             <input
               type="range"
@@ -153,14 +153,14 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
               step="0.05"
               value={trajectory}
               onChange={(e) => setTrajectory(parseFloat(e.target.value))}
-              className="w-full accent-[#bc8cff] cursor-pointer"
+              className="w-full accent-[#5b6ec4] cursor-pointer"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-[#C9D1D9] mb-1 font-mono text-[11px]">
+            <div className="flex justify-between text-ink mb-1 font-mono text-[11px]">
               <span>Kinematic Consistency:</span>
-              <span className="text-[#AFF5B4]">{(Number(normConsistency) * 100).toFixed(0)}%</span>
+              <span className="text-ok">{(Number(normConsistency) * 100).toFixed(0)}%</span>
             </div>
             <input
               type="range"
@@ -169,22 +169,22 @@ export const WeightsModal: React.FC<WeightsModalProps> = ({
               step="0.05"
               value={consistency}
               onChange={(e) => setConsistency(parseFloat(e.target.value))}
-              className="w-full accent-[#AFF5B4] cursor-pointer"
+              className="w-full accent-[#b7791f] cursor-pointer"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 pt-3 border-t border-[#30363D]">
+        <div className="flex justify-end gap-2 pt-3 border-t border-line">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-[4px] bg-[#0D1117] hover:bg-[#21262D] text-[#C9D1D9] border border-[#30363D] text-xs font-mono cursor-pointer"
+            className="px-3 py-1.5 rounded-[4px] bg-canvas hover:bg-subtle text-ink border border-line text-xs font-mono cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-1.5 rounded-[4px] bg-[#58A6FF] hover:bg-[#79C0FF] text-[#0D1117] text-xs font-bold font-mono flex items-center gap-1.5 cursor-pointer border border-[#58A6FF]"
+            className="px-4 py-1.5 rounded-[4px] bg-navy hover:bg-navy-600 text-white text-xs font-bold font-mono flex items-center gap-1.5 cursor-pointer border border-navy"
           >
             <Check className="w-3.5 h-3.5" /> Apply Weights
           </button>

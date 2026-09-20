@@ -28,6 +28,7 @@ import { toLegacyDrift, toLegacyAttribution, envSummaryFromInvestigation, Legacy
 import { excludeVessel, forcingSensitivity } from "./server/lib/counterfactual";
 import { loadCapabilities } from "./server/lib/capabilities";
 import { dataRootStatus } from "./server/lib/dataroot";
+import { analyseUpload, getUpload, listUploads, liveSceneRunCached, liveScenePreviewPath, previewPath, probeModelRuntime, uploadLimits } from "./server/lib/uploads";
 import { validateFeedback, addFeedback, listFeedback } from "./server/lib/review";
 
 declare const __AEGIS_BUILD__: string | undefined;
@@ -68,6 +69,13 @@ function acquireJob(res: Response): boolean {
 function releaseJob() {
   activeJobs = Math.max(0, activeJobs - 1);
 }
+
+/** Filled once at startup: whether uploads can actually be scored here (python + torch + rasterio). */
+let modelRuntime: { available: boolean; detail: string } = { available: false, detail: "not probed yet" };
+probeModelRuntime().then((r) => {
+  modelRuntime = r;
+  console.log(`[AEGIS] model runtime for image uploads: ${r.available ? "available" : "NOT available"} - ${r.detail}`);
+});
 
 const state = {
   spills: new Map<number, any>(),
@@ -207,6 +215,8 @@ async function startServer() {
       environment: IS_PROD ? "production" : "development",
       available_scenes: svc.listScenes().length,
       data_root: dataRootStatus(),
+      model_runtime: modelRuntime,            // can this deployment score an uploaded image?
+      upload_max_bytes: uploadLimits.maxBytes,
       data_inventory: svc.dataInventory(),
       model: reg?.models?.find((m: any) => m.role === "production-baseline")?.name ?? null,
       timestamp: new Date().toISOString(),
@@ -467,6 +477,132 @@ async function startServer() {
 
   // ---------------- capabilities (honest status of advanced features)
   app.get("/api/capabilities", (_req, res) => res.json(loadCapabilities(ROOT)));
+
+  // ---------------- SAR image upload -> existing frozen U-Net
+  // The raw file is posted as the request body (no multipart dependency). The model runs in a child
+  // process via ml/inference/predict_upload.py; this route never fabricates a result.
+  app.post("/api/uploads/sar", express.raw({ type: "*/*", limit: uploadLimits.maxBytes }), async (req, res) => {
+    if (!acquireJob(res)) return;
+    try {
+      const filename = String(req.query.filename ?? "upload.tif");
+      const observedAt = req.query.observed_at ? String(req.query.observed_at) : null;
+      const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+      const out = await analyseUpload(ROOT, body, filename, observedAt);
+      if (!out.ok || !out.record) return res.status(out.status ?? 500).json(out.body ?? { ok: false, reason: "INFERENCE_FAILED" });
+      const r = out.record;
+      res.json({
+        ok: true,
+        upload_id: r.id,
+        scene_id: r.scene_id,
+        filename: r.filename,
+        bytes: r.bytes,
+        observed_at: r.observed_at,
+        observed_at_supplied: r.observed_at_supplied,
+        preview_url: `/api/uploads/${r.id}/preview.png`,
+        overlay_url: `/api/uploads/${r.id}/overlay.png`,
+        result: r.result,
+      });
+    } catch (e) {
+      res.status(500).json({ ok: false, reason: "INFERENCE_FAILED", detail: (e as Error).message });
+    } finally {
+      releaseJob();
+    }
+  });
+
+  app.get("/api/uploads", (_req, res) =>
+    res.json({
+      storage: "in-memory registry, files under the server's upload directory (not persisted across restarts)",
+      max_bytes: uploadLimits.maxBytes,
+      uploads: listUploads().map((u) => ({
+        upload_id: u.id, scene_id: u.scene_id, filename: u.filename, bytes: u.bytes,
+        created_utc: u.created_utc, observed_at: u.observed_at,
+        detected: !!u.result?.prediction?.detected, investigable: !!u.result?.investigable,
+      })),
+    }),
+  );
+
+  app.get("/api/uploads/:id", (req, res) => {
+    const u = getUpload(String(req.params.id));
+    if (!u) return res.status(404).json({ error: "Upload not found" });
+    res.json({ ok: true, upload_id: u.id, scene_id: u.scene_id, filename: u.filename, observed_at: u.observed_at, result: u.result });
+  });
+
+  // ---------------- live model inference on the bundled demo scene ("prove the prediction is real")
+  // Runs the SAME frozen checkpoint, in THIS deployment, over the real Sentinel-1 raster that produced
+  // the stored MODEL_PREDICTION polygons, and reports the live numbers beside the stored ones.
+  // The investigation is NOT altered by this route: it exists so a reviewer can verify that the
+  // precomputed detection is genuinely this model's output and not a hand-drawn polygon.
+  app.get("/api/demo/verify-inference", (_req, res) => {
+    const raster = svc.realSceneRasterPath();
+    const stored = svc.storedScenePrediction();
+    res.json({
+      available: !!raster && modelRuntime.available,
+      raster_present: !!raster,
+      model_runtime: modelRuntime,
+      expected_seconds: 25,
+      note: raster && modelRuntime.available
+        ? "POST to this endpoint to run the frozen U-Net live on the bundled real SAR scene. The result is compared with the stored MODEL_PREDICTION."
+        : "Live re-inference is not available in this deployment; the stored MODEL_PREDICTION polygons are shown and labelled as such.",
+      stored_prediction: stored,
+    });
+  });
+
+  app.post("/api/demo/verify-inference", async (_req, res) => {
+    const raster = svc.realSceneRasterPath();
+    if (!raster) {
+      return res.status(404).json({
+        ok: false,
+        reason: "SCENE_RASTER_UNAVAILABLE",
+        detail: "The real SAR raster is not bundled in this deployment, so the model cannot be re-run here.",
+      });
+    }
+    if (!acquireJob(res)) return;
+    try {
+      const out = await liveSceneRunCached(ROOT, raster, REAL_SCENE_ID);
+      if (!out.ok) return res.status(out.status ?? 500).json(out.body);
+      const stored = svc.storedScenePrediction();
+      const live = out.result;
+      const livePx = Number(live?.prediction?.positive_pixels ?? NaN);
+      const storedPx = Number(stored?.predicted_pixels ?? NaN);
+      const reproduces = Number.isFinite(livePx) && Number.isFinite(storedPx) && livePx === storedPx;
+      res.json({
+        ok: true,
+        provenance: "LIVE_MODEL_INFERENCE",
+        label: "LIVE MODEL INFERENCE",
+        ran_in: "this deployment, on CPU, from the bundled Sentinel-1 VV raster",
+        live,
+        stored_prediction: stored,
+        comparison: {
+          live_positive_pixels: Number.isFinite(livePx) ? livePx : null,
+          stored_positive_pixels: Number.isFinite(storedPx) ? storedPx : null,
+          identical: reproduces,
+          statement: reproduces
+            ? "The live run reproduced the stored MODEL_PREDICTION exactly (same positive-pixel count). The precomputed polygons shown in the investigation are this model's output."
+            : "The live run did not reproduce the stored pixel count exactly; both numbers are shown unchanged above.",
+        },
+        preview_url: "/api/demo/verify-inference/preview.png",
+        overlay_url: "/api/demo/verify-inference/overlay.png",
+      });
+    } catch (e) {
+      res.status(500).json({ ok: false, reason: "INFERENCE_FAILED", detail: (e as Error).message });
+    } finally {
+      releaseJob();
+    }
+  });
+
+  app.get("/api/demo/verify-inference/:which(preview|overlay).png", (req, res) => {
+    const p = liveScenePreviewPath(REAL_SCENE_ID, req.params.which as "preview" | "overlay");
+    if (!p) return res.status(404).json({ error: "Run POST /api/demo/verify-inference first" });
+    res.setHeader("Cache-Control", "private, max-age=600");
+    res.sendFile(p);
+  });
+
+  app.get("/api/uploads/:id/:which(preview|overlay).png", (req, res) => {
+    const p = previewPath(String(req.params.id), req.params.which as "preview" | "overlay");
+    if (!p) return res.status(404).json({ error: "Preview not available" });
+    res.setHeader("Cache-Control", "private, max-age=600");
+    res.sendFile(p);
+  });
 
   // ---------------- basemap tiles (CARTO)
   // The CARTO key stays on the SERVER (read from CARTO_API_KEY, else VITE_CARTO_API_KEY in the server's environment/.env)

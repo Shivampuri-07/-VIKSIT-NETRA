@@ -26,6 +26,7 @@ import {
 import { EnvironmentModel, FieldSource, loadGriddedField, sampleField, describeSource } from "./environment";
 import { parseMarineCadastreCsv, parseDemoAisJson, groupTracks, VesselTrack, parseCsv } from "./ais";
 import { dataRoot, resolveData } from "./dataroot";
+import { getUpload, listUploads, UploadRecord } from "./uploads";
 
 export const REAL_SCENE_ID = "GOM_S1A_20180926_REAL";
 
@@ -141,6 +142,41 @@ export function assertSafeSceneId(id: string): string {
     throw new Error("Invalid scene id");
   }
   return id;
+}
+
+/** SceneRecord for an uploaded, model-scored raster. Everything comes from the stored prediction. */
+function uploadedSceneRecord(u: UploadRecord): SceneRecord {
+  const g = u.result?.geometry;
+  const foot = u.result?.input?.footprint_bbox_lonlat as [number, number, number, number] | undefined;
+  const bbox = (foot ?? g?.bbox ?? [0, 0, 0, 0]) as [number, number, number, number];
+  const centroid = g?.centroid ?? [(bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2];
+  const notes = [
+    "Uploaded raster scored with the frozen U-Net checkpoint. No environmental product and no AIS extract exist for this scene.",
+    u.observed_at_supplied
+      ? "Observation time supplied by the analyst."
+      : "No observation time was supplied with the upload; the upload time is used, so drift and any AIS window are relative to that.",
+    ...(u.result?.notes ?? []),
+  ];
+  return {
+    scene_id: u.scene_id,
+    name: `Uploaded SAR image - ${u.filename}`,
+    region: g?.centroid ? "Uploaded scene" : "Uploaded scene (not georeferenced)",
+    acquisition_time: u.observed_at,
+    acquisition_time_source: u.observed_at_supplied ? "supplied with the upload" : "upload time (no observation time supplied)",
+    satellite: "Uploaded raster (sensor not verified)",
+    polarization: "unknown",
+    bbox,
+    bbox_source: foot ? "footprint of the uploaded raster" : "extent of the predicted polygons",
+    center_lat: centroid[0],
+    center_lon: centroid[1],
+    environmental: { current_uo_ms: null, current_vo_ms: null, wind_u10_ms: null, wind_v10_ms: null, wave_height_m: null, sea_temp_c: null },
+    data_source: `Uploaded file ${u.filename} (${(u.bytes / 1e6).toFixed(1)} MB), scored by ml/inference/predict_upload.py`,
+    real_data: true,
+    synthetic: false,
+    data_status: g?.polygons?.length ? "MODEL_PREDICTION" : "NOT_AVAILABLE",
+    ml_model: "U-Net (ml/checkpoints/unet_oil_spill_best.pth)",
+    notes,
+  };
 }
 
 export class SceneService {
@@ -283,7 +319,16 @@ export class SceneService {
   }
 
   listScenes(): SceneRecord[] {
-    return [this.realScene(), ...this.demoScenes().filter((s) => s.scene_id !== REAL_SCENE_ID)];
+    return [
+      this.realScene(),
+      ...this.demoScenes().filter((s) => s.scene_id !== REAL_SCENE_ID),
+      ...listUploads().map(uploadedSceneRecord),
+    ];
+  }
+
+  /** The upload behind an UPLOAD_<id> scene id, if any. */
+  private upload(sceneId: string): UploadRecord | undefined {
+    return sceneId.startsWith("UPLOAD_") ? getUpload(sceneId.slice("UPLOAD_".length)) : undefined;
   }
 
   getScene(id: string): SceneRecord | null {
@@ -311,6 +356,91 @@ export class SceneService {
     const scene = this.getScene(sceneId);
     if (!scene) throw new Error(`Scene not found: ${sceneId}`);
     const spillId = this.spillCounter++;
+
+    const up = this.upload(sceneId);
+    if (up) {
+      const g = up.result?.geometry;
+      const parts: LonLat[][] = (g?.polygons ?? []).map((q: any) => q.ring as LonLat[]);
+      const pred = up.result?.prediction ?? {};
+      const model = up.result?.model ?? {};
+      const common = {
+        spill_id: spillId,
+        scene_id: sceneId,
+        detection_time: scene.acquisition_time,
+        dataset_mode: "UPLOAD",
+        polarization,
+        real_data: true,
+        synthetic: false,
+        data_source: scene.data_source ?? "Uploaded raster",
+        reference_label: null,
+      };
+      if (!parts.length) {
+        return {
+          ...common,
+          geometry: {
+            has_detection: false, centroid: [scene.center_lat, scene.center_lon], area_km2: 0, area_hectares: 0, perimeter_km: 0,
+            bbox: scene.bbox, coordinates: [], parts: [], n_components: pred.connected_components ?? null,
+            dropped_small_component_pixels: pred.pixels_dropped_as_specks ?? null, area_basis: "no georeferenced prediction",
+            orientation_deg: 0, orientation_source: "n/a", polygon_principal_axis_deg: 0, elongation: 0, confidence: null,
+            pixel_count: pred.positive_pixels ?? null,
+          },
+          geometry_source: "NOT_AVAILABLE",
+          geometry_source_detail: up.result?.input?.georeferenced === false
+            ? "The uploaded raster has no CRS, so the prediction cannot be placed on the map or measured in km². Pixel counts only."
+            : "The model produced no slick polygons above the size filter for this upload.",
+          prediction_provenance: { provenance: "MODEL_PREDICTION", model, inference: model, created_utc: up.result?.created_utc },
+          disclaimer: "No mappable detection was produced for this upload, so no drift or attribution is computed.",
+        };
+      }
+      const ring = parts[0];
+      const pa = ringPrincipalAxis(ring);
+      const perimeter = parts.reduce((acc, r) => acc + ringPerimeterKm(r), 0);
+      const totalKm2 = pred.area_km2 ?? g.total_area_km2 ?? 0;
+      return {
+        ...common,
+        geometry: {
+          has_detection: true,
+          centroid: g.centroid,
+          area_km2: round(totalKm2, 3),
+          area_hectares: round(totalKm2 * 100, 1),
+          perimeter_km: round(perimeter, 2),
+          bbox: g.bbox,
+          coordinates: ring,
+          parts,
+          n_components: g.n_connected_components ?? null,
+          dropped_small_component_pixels: g.dropped_small_component_pixels ?? null,
+          area_basis: "predicted-pixel count x pixel area of the uploaded raster",
+          orientation_deg: g.orientation_deg ?? round(pa.axis_deg, 1),
+          orientation_source: g.orientation_source ?? "polygon second moments",
+          polygon_principal_axis_deg: round(pa.axis_deg, 1),
+          elongation: round(pa.elongation, 2),
+          confidence: null,
+          pixel_count: pred.pixels_in_kept_components ?? g.total_pixel_count ?? null,
+        },
+        geometry_source: "MODEL_PREDICTION",
+        geometry_source_detail:
+          `Frozen U-Net (checkpoint ${String(model.checkpoint_sha256 ?? "").slice(0, 8)}…) run on the uploaded raster ` +
+          `${up.filename} (${up.result?.input?.width}x${up.result?.input?.height}, ${up.result?.input?.crs ?? "no CRS"}): ` +
+          `${model.normalization}, ${model.tiling}, threshold ${model.threshold}; ` +
+          `${parts.length} polygons kept of ${g.n_connected_components} components. ` +
+          (up.result?.input?.in_training_value_range === false
+            ? "WARNING: pixel values lie outside the Sentinel-1 VV dB range the model was trained on, so this result is out-of-distribution."
+            : ""),
+        derived_geometry_status: "DERIVED_GEOMETRY",
+        prediction_provenance: { provenance: "MODEL_PREDICTION", model, inference: model, source_raster: up.result?.input, prediction_stats: pred, created_utc: up.result?.created_utc },
+        ml_model: { name: "U-Net", checkpoint: model.checkpoint, checkpoint_sha256: model.checkpoint_sha256, checkpoint_epoch: model.epoch },
+        segmentation_quality: {
+          scene_dice_vs_label: null,
+          scene_metrics_provenance: "NOT_MEASURED (no reference label exists for an uploaded image)",
+          note: "Segmentation quality cannot be measured for an uploaded image because there is no labelled mask to compare against.",
+          probability_max: pred.max_probability ?? null,
+          probability_is_calibrated: false,
+        },
+        disclaimer:
+          "SAR dark areas can be caused by look-alikes (low wind, biogenic films, rain cells). This is a model prediction on an uploaded raster, " +
+          "not proof of petroleum, and the sensor and calibration of the upload were not verified.",
+      };
+    }
 
     if (sceneId === REAL_SCENE_ID) {
       const inf = this.realInference();
@@ -517,6 +647,14 @@ export class SceneService {
     assertSafeSceneId(sceneId);
     const cached = this.envCache.get(sceneId);
     if (cached) return cached;
+    if (this.upload(sceneId)) {
+      const m: EnvironmentModel = {
+        wind: { kind: "none", label: "No wind product for an uploaded scene (NOT_ASSESSED)" },
+        current: { kind: "none", label: "CURRENT_DATA_UNAVAILABLE / NOT_ASSESSED for an uploaded scene" },
+      };
+      this.envCache.set(sceneId, m);
+      return m;
+    }
     let model: EnvironmentModel;
     const currentFile = this.currentFile(sceneId);
     let current: FieldSource = currentFile
@@ -561,6 +699,11 @@ export class SceneService {
     const cached = this.aisCache.get(sceneId);
     if (cached) return cached;
     let entry;
+    if (this.upload(sceneId)) {
+      entry = { tracks: [], label: "No AIS extract for an uploaded scene", bbox: null, records: 0, synthetic: false, file: "n/a", source_type: "NOT_AVAILABLE" };
+      this.aisCache.set(sceneId, entry);
+      return entry;
+    }
     if (sceneId === REAL_SCENE_ID) {
       const file = this.d("data", "ais", "2018", "ais_2018-09-26_scene.csv");
       if (!fs.existsSync(file)) {
@@ -603,6 +746,32 @@ export class SceneService {
   // ---------------------------------------------------------------- misc
   modelRegistry(): any {
     return readJson<any>(this.p("ml", "model_registry.json"), null);
+  }
+
+  /** Absolute path of the real Sentinel-1 VV raster, if this deployment bundles it (else null). */
+  realSceneRasterPath(): string | null {
+    return resolveData(this.root, "data", "sentinel1", "real", "2018_09_26.tif");
+  }
+
+  /**
+   * The stored, precomputed MODEL_PREDICTION summary for the real scene: what the frozen U-Net
+   * produced offline. Used to compare against a live re-run; never modified by one.
+   */
+  storedScenePrediction(): Record<string, unknown> | null {
+    const g = readJson<any>(this.p(...INFERENCE_DIR, "unet_geometry_scene.json"), null);
+    if (!g) return null;
+    return {
+      provenance: "MODEL_PREDICTION (precomputed offline, bundled with this deployment)",
+      created_utc: g.created_utc ?? null,
+      predicted_pixels: g.prediction_stats?.predicted_pixels ?? null,
+      max_probability: g.prediction_stats?.max_probability ?? null,
+      total_area_km2: g.total_area_km2 ?? null,
+      n_connected_components: g.n_connected_components ?? null,
+      polygons_kept: Array.isArray(g.polygons) ? g.polygons.length : null,
+      checkpoint_sha256: g.model?.checkpoint_sha256 ?? null,
+      inference: g.inference ?? null,
+      source_raster: g.source_raster ?? null,
+    };
   }
 
   assets(sceneId: string): { name: string; file: string; description: string; georeferenced: boolean }[] {

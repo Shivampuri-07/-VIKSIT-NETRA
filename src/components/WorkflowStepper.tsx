@@ -1,5 +1,5 @@
 import React from "react";
-import { Satellite, Wind, Route, Ship, Brain, CheckCircle2, Play, RefreshCw, XCircle, MinusCircle } from "lucide-react";
+import { Check, X, Minus, Loader2, Play, RotateCcw } from "lucide-react";
 import type { NodeStatus } from "../types";
 
 interface WorkflowStepperProps {
@@ -9,13 +9,13 @@ interface WorkflowStepperProps {
   onReset: () => void;
 }
 
-/** Stages are groups of REAL investigation-graph nodes; status comes from backend events. */
+/** Stages group REAL investigation-graph nodes; status comes from the backend node events. */
 const STAGES = [
-  { title: "Detection", subtitle: "SAR slick + geometry", icon: Satellite, nodes: ["satellite_detection", "spill_characterization"] },
-  { title: "Environment", subtitle: "ERA5 wind / currents", icon: Wind, nodes: ["environmental_analysis"] },
-  { title: "Drift Physics", subtitle: "Backtrack + forecast", icon: Route, nodes: ["backward_origin", "forward_forecast"] },
-  { title: "AIS Evidence", subtitle: "Candidates + fusion", icon: Ship, nodes: ["ais_investigation", "evidence_fusion"] },
-  { title: "Intelligence", subtitle: "Hypotheses → report", icon: Brain, nodes: ["competing_hypotheses", "uncertainty", "risk_assessment", "response_recommendation", "report_generation"] },
+  { title: "Detection", subtitle: "SAR slick + geometry", nodes: ["satellite_detection", "spill_characterization"] },
+  { title: "Environment", subtitle: "Wind + current forcing", nodes: ["environmental_analysis"] },
+  { title: "Drift physics", subtitle: "Backtrack + forecast", nodes: ["backward_origin", "forward_forecast"] },
+  { title: "AIS evidence", subtitle: "Candidates + fusion", nodes: ["ais_investigation", "evidence_fusion"] },
+  { title: "Intelligence", subtitle: "Hypotheses → report", nodes: ["competing_hypotheses", "uncertainty", "risk_assessment", "response_recommendation", "report_generation"] },
 ];
 
 function stageStatus(nodes: string[], st: Record<string, NodeStatus>): NodeStatus {
@@ -28,41 +28,75 @@ function stageStatus(nodes: string[], st: Record<string, NodeStatus>): NodeStatu
   return "pending";
 }
 
+const STATUS_TEXT: Record<NodeStatus, string> = {
+  completed: "Complete",
+  running: "Running",
+  failed: "Failed",
+  skipped: "Skipped",
+  pending: "Pending",
+};
+
+const Indicator: React.FC<{ status: NodeStatus; index: number }> = ({ status, index }) => {
+  const base = "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-semibold vn-num";
+  if (status === "completed") return <span className={`${base} bg-ok-50 text-ok border border-ok/30`}><Check className="w-3.5 h-3.5" aria-hidden="true" /></span>;
+  if (status === "failed") return <span className={`${base} bg-danger-50 text-danger border border-danger/30`}><X className="w-3.5 h-3.5" aria-hidden="true" /></span>;
+  if (status === "running") return <span className={`${base} bg-navy-50 text-navy-600 border border-navy-600/30`}><Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /></span>;
+  if (status === "skipped") return <span className={`${base} bg-subtle text-faint border border-line`}><Minus className="w-3.5 h-3.5" aria-hidden="true" /></span>;
+  return <span className={`${base} bg-subtle text-muted border border-line`}>{String(index + 1).padStart(2, "0")}</span>;
+};
+
+/** Horizontal workflow tracker for the five investigation stages, plus the primary action. */
 export const WorkflowStepper: React.FC<WorkflowStepperProps> = ({ nodeStatus, isAnalyzing, onRunFullAnalysis, onReset }) => (
-  <div className="bg-[#161B22] border-b border-[#30363D] px-5 py-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 select-none">
-    <div className="flex items-center overflow-x-auto gap-2 no-scrollbar">
+  <div className="bg-surface border-b border-line px-4 lg:px-5 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-3 shrink-0 select-none">
+    <ol className="flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0" aria-label="Investigation progress">
       {STAGES.map((s, i) => {
         const st = stageStatus(s.nodes, nodeStatus);
-        const Icon = s.icon;
-        const cls =
-          st === "completed" ? "bg-[#238636]/15 border-[#238636] text-[#AFF5B4]"
-          : st === "running" ? "bg-[#58A6FF]/15 border-[#58A6FF] text-[#C9D1D9]"
-          : st === "failed" ? "bg-[#f85149]/15 border-[#f85149] text-[#f85149]"
-          : st === "skipped" ? "bg-[#0D1117] border-[#30363D] text-[#484F58]"
-          : "bg-[#0D1117] border-[#30363D] text-[#8B949E]";
         const done = s.nodes.filter((n) => nodeStatus[n] === "completed").length;
         return (
-          <div key={s.title} className="flex items-center gap-2 shrink-0">
-            <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] border ${cls}`} title={s.nodes.map((n) => `${n}: ${nodeStatus[n] ?? "pending"}`).join("\n")}>
-              <div className="w-5 h-5 flex items-center justify-center">
-                {st === "completed" ? <CheckCircle2 className="w-3.5 h-3.5" /> : st === "failed" ? <XCircle className="w-3.5 h-3.5" /> : st === "skipped" ? <MinusCircle className="w-3.5 h-3.5" /> : st === "running" ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[11px] font-semibold leading-tight">{s.title}</span>
-                <span className="text-[9px] text-[#8B949E] font-mono leading-tight">{s.subtitle} · {done}/{s.nodes.length}</span>
+          <li key={s.title} className="flex items-center gap-1 shrink-0">
+            <div
+              className={`flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-[9px] border ${
+                st === "completed"
+                  ? "border-ok/25 bg-ok-50/50"
+                  : st === "running"
+                    ? "border-navy-600/30 bg-navy-50"
+                    : st === "failed"
+                      ? "border-danger/30 bg-danger-50"
+                      : "border-line bg-surface"
+              }`}
+              title={s.nodes.map((n) => `${n}: ${nodeStatus[n] ?? "pending"}`).join("\n")}
+            >
+              <Indicator status={st} index={i} />
+              <div className="leading-tight">
+                <div className="text-[12px] font-medium text-ink whitespace-nowrap">{s.title}</div>
+                <div className="text-[10px] text-muted whitespace-nowrap">
+                  {STATUS_TEXT[st]} · {done}/{s.nodes.length} · <span className="hidden xl:inline">{s.subtitle}</span>
+                </div>
               </div>
             </div>
-            {i < STAGES.length - 1 && <span className="text-[#30363D] hidden lg:inline font-mono">→</span>}
-          </div>
+            {i < STAGES.length - 1 && <span className="w-4 h-px bg-line-strong hidden lg:block" aria-hidden="true" />}
+          </li>
         );
       })}
-    </div>
-    <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-      <button onClick={onRunFullAnalysis} disabled={isAnalyzing} className="px-4 py-1.5 rounded-[4px] bg-[#58A6FF] hover:bg-[#79C0FF] disabled:opacity-50 text-[#0D1117] text-xs font-bold flex items-center gap-2 cursor-pointer border border-[#58A6FF]">
-        {isAnalyzing ? (<><RefreshCw className="w-3.5 h-3.5 animate-spin" /><span className="font-mono uppercase tracking-wider">Running…</span></>) : (<><Play className="w-3.5 h-3.5 fill-current" /><span>Run Investigation</span></>)}
+    </ol>
+
+    <div className="flex items-center gap-2 shrink-0 w-full justify-end lg:w-auto">
+      <button onClick={onReset} disabled={isAnalyzing} title="Clear the current results" className="vn-btn" aria-label="Clear results">
+        <RotateCcw className="w-3.5 h-3.5 text-muted" aria-hidden="true" />
+        <span className="hidden sm:inline">Clear</span>
       </button>
-      <button onClick={onReset} disabled={isAnalyzing} title="Clear results" className="p-1.5 rounded-[4px] bg-[#161B22] hover:bg-[#21262D] text-[#8B949E] text-xs border border-[#30363D] cursor-pointer">
-        <RefreshCw className="w-3.5 h-3.5" />
+      <button onClick={onRunFullAnalysis} disabled={isAnalyzing} className="vn-btn vn-btn-primary px-4 py-2" data-testid="run-investigation">
+        {isAnalyzing ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            Running investigation…
+          </>
+        ) : (
+          <>
+            <Play className="w-3.5 h-3.5" aria-hidden="true" />
+            Run investigation
+          </>
+        )}
       </button>
     </div>
   </div>

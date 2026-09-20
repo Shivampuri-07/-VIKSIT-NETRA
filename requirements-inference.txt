@@ -1,0 +1,7 @@
+# Minimal runtime for scoring UPLOADED SAR images with the frozen U-Net (ml/inference/predict_upload.py).
+# This is NOT the training/research stack (see requirements.txt) and does not include the dataset.
+# CPU wheels are enough; the server falls back to a clear "model runtime unavailable" message without them.
+torch>=2.0.0
+rasterio>=1.3.0
+numpy>=1.24.0
+pillow>=10.0.0

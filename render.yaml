@@ -1,0 +1,47 @@
+# Render Blueprint — VIKSIT-NETRA public demonstration (Viksit Tech)
+#
+# ONE free web service. No database, no Redis, no worker, no paid add-on: the investigation engine
+# keeps its state in memory per request and every dataset it needs is baked into the image.
+#
+# The service is built from the repository's existing Dockerfile, unchanged. That Dockerfile
+# defaults to WITH_MODEL_RUNTIME=false, which is the configuration a 512 MB / 0.1 CPU free instance
+# can actually run (Render Blueprints cannot pass Docker build args, so the default has to be the
+# safe one). Consequences, stated plainly:
+#
+#   * The full investigation runs LIVE on every request — drift and backtracking, AIS correlation,
+#     candidate scoring, evidence fusion, counterfactuals, hypotheses, risk, report. Measured peak
+#     memory for a complete investigation: ~94 MB.
+#   * The U-Net segmentation is served from the bundled PRECOMPUTED MODEL_PREDICTION and is labelled
+#     as such in the UI. "Verify detection" reports that live re-inference is unavailable here
+#     rather than pretending to run. Full-scene inference was measured at ~1.05 GB peak RSS, which
+#     does not fit in 512 MB.
+#
+# To get live inference back, deploy the same image to a >= 2 GB host built with
+# --build-arg WITH_MODEL_RUNTIME=true. Nothing in the application changes.
+
+services:
+  - type: web
+    name: viksit-netra
+    runtime: docker
+    plan: free
+    region: singapore          # closest Render region to India; change if you prefer another
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # The image already ends in: CMD ["node", "dist-server/server.cjs"]
+    # No dockerCommand override, so the tested production entrypoint is what runs.
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      # Render injects PORT itself and the server binds HOST=0.0.0.0 (both set in the Dockerfile),
+      # so neither is hard-coded here. Nothing below is a secret.
+      - key: NODE_ENV
+        value: production
+      # Concurrent drift/investigation jobs before HTTP 429. Kept at 1 because a free instance has
+      # 0.1 CPU: a second concurrent particle ensemble would make both of them slow.
+      - key: AEGIS_MAX_CONCURRENT_JOBS
+        value: "1"
+      # Uploads land on the container's ephemeral filesystem and are removed by the server's own
+      # retention (newest 12 kept). Free instances have no persistent disk, which is fine: nothing
+      # here is meant to survive a restart.
+      - key: AEGIS_UPLOAD_DIR
+        value: /tmp/viksit-netra-uploads

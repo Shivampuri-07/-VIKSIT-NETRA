@@ -37,6 +37,7 @@ opt("ml/checkpoints/unet_oil_spill_best.pth", "U-Net baseline (listed in /api/he
 opt("ml/results/inference/2018_09_26/unet_geometry_scene.json", "U-Net MODEL_PREDICTION polygons of the real scene (else the scene reports NOT_AVAILABLE; the reference label is never used as a detection)");
 opt("ml/results/inference/2018_09_26/reference_label_geometry.json", "REFERENCE_LABEL polygons (evaluation overlay only)");
 opt("data/currents/GOM_S1A_20180926_REAL_currents.json", "historical ocean-current field (else CURRENT_DATA_UNAVAILABLE / NOT_ASSESSED)");
+opt("data/sentinel1/real/2018_09_26.tif", "real Sentinel-1 VV raster of the demo scene (enables live re-inference; without it /api/demo/verify-inference reports SCENE_RASTER_UNAVAILABLE)");
 
 let leaked = [];
 if (withBuild) {

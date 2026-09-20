@@ -11,11 +11,11 @@ interface Props {
 }
 
 const StatusIcon: React.FC<{ s: NodeStatus }> = ({ s }) => {
-  if (s === "completed") return <CheckCircle2 className="w-3.5 h-3.5 text-[#3fb950]" />;
-  if (s === "failed") return <XCircle className="w-3.5 h-3.5 text-[#f85149]" />;
-  if (s === "skipped") return <MinusCircle className="w-3.5 h-3.5 text-[#484F58]" />;
-  if (s === "running") return <RefreshCw className="w-3.5 h-3.5 text-[#58A6FF] animate-spin" />;
-  return <Circle className="w-3.5 h-3.5 text-[#484F58]" />;
+  if (s === "completed") return <CheckCircle2 className="w-3.5 h-3.5 text-ok" />;
+  if (s === "failed") return <XCircle className="w-3.5 h-3.5 text-danger" />;
+  if (s === "skipped") return <MinusCircle className="w-3.5 h-3.5 text-faint" />;
+  if (s === "running") return <RefreshCw className="w-3.5 h-3.5 text-navy-600 animate-spin" />;
+  return <Circle className="w-3.5 h-3.5 text-faint" />;
 };
 
 export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nodeStatus, isAnalyzing }) => {
@@ -34,7 +34,7 @@ export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nod
 
   if (!investigation) {
     return (
-      <div className="h-full flex items-center justify-center text-[11px] text-[#8B949E] font-mono">
+      <div className="h-full flex items-center justify-center text-[11px] text-muted font-mono">
         {isAnalyzing ? "Starting investigation…" : "No investigation yet. Press Run Investigation."}
       </div>
     );
@@ -50,11 +50,11 @@ export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nod
 
   return (
     <div className="h-full flex text-[11px] min-h-0">
-      <div className="w-[260px] shrink-0 border-r border-[#30363D] overflow-y-auto">
-        <div className="px-3 py-1.5 text-[9px] text-[#8B949E] font-mono border-b border-[#30363D] space-y-1">
+      <div className="w-[260px] shrink-0 border-r border-line overflow-y-auto">
+        <div className="px-3 py-1.5 text-[9px] text-muted font-mono border-b border-line space-y-1">
           <div>
             <span data-testid="orchestrator-badge" title={investigation.graph.orchestrator_info?.note ?? undefined}
-              className={`inline-block mr-1 px-1 rounded border ${investigation.graph.orchestrator === "langgraph" ? "border-[#3fb950] text-[#3fb950]" : "border-[#d29922] text-[#d29922]"}`}>
+              className={`inline-block mr-1 px-1 rounded border ${investigation.graph.orchestrator === "langgraph" ? "border-ok text-ok" : "border-warn text-warn"}`}>
               {investigation.graph.orchestrator_status ?? (investigation.graph.orchestrator === "langgraph" ? "LANGGRAPH" : "DETERMINISTIC_FALLBACK")}
             </span>
             {investigation.graph.runtime}
@@ -73,16 +73,16 @@ export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nod
           const e = lastEventByNode.get(n.id);
           return (
             <button key={n.id} onClick={() => setSelected(n.id)}
-              className={`w-full text-left px-3 py-1.5 flex items-center gap-2 border-b border-[#21262D] cursor-pointer ${active === n.id ? "bg-[#161B22]" : "hover:bg-[#161B22]/60"}`}>
+              className={`w-full text-left px-3 py-1.5 flex items-center gap-2 border-b border-line cursor-pointer ${active === n.id ? "bg-surface" : "hover:bg-subtle/60"}`}>
               <StatusIcon s={st} />
-              <span className="font-mono text-[9px] text-[#484F58] w-4">{i + 1}</span>
-              <span className={`flex-1 ${st === "skipped" || st === "pending" ? "text-[#8B949E]" : "text-[#C9D1D9]"}`}>{n.label}{n.conditional ? " ◇" : ""}</span>
-              {e?.duration_ms !== undefined && <span className="font-mono text-[9px] text-[#8B949E]">{e.duration_ms.toFixed(1)} ms</span>}
-              {(e?.warnings?.length ?? 0) > 0 && <AlertTriangle className="w-3 h-3 text-[#d29922]" />}
+              <span className="font-mono text-[9px] text-faint w-4">{i + 1}</span>
+              <span className={`flex-1 ${st === "skipped" || st === "pending" ? "text-muted" : "text-ink"}`}>{n.label}{n.conditional ? " ◇" : ""}</span>
+              {e?.duration_ms !== undefined && <span className="font-mono text-[9px] text-muted">{e.duration_ms.toFixed(1)} ms</span>}
+              {(e?.warnings?.length ?? 0) > 0 && <AlertTriangle className="w-3 h-3 text-warn" />}
             </button>
           );
         })}
-        <div className="px-3 py-1.5 text-[9px] text-[#8B949E] font-mono">
+        <div className="px-3 py-1.5 text-[9px] text-muted font-mono">
           {events.length} real events · compute {totalMs.toFixed(1)} ms · ◇ = conditional routing
         </div>
       </div>
@@ -93,8 +93,8 @@ export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nod
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <StatusIcon s={nodeStatus[node.id] ?? "pending"} />
-                <span className="font-semibold text-[#C9D1D9] text-[12px]">{node.label}</span>
-                <span className="font-mono text-[9px] text-[#8B949E]">{node.id}</span>
+                <span className="font-semibold text-ink text-[12px]">{node.label}</span>
+                <span className="font-mono text-[9px] text-muted">{node.id}</span>
               </div>
               {ev?.confidence && (
                 <span className="font-mono text-[9px] px-1.5 py-0.5 rounded border" style={{ color: levelColor(ev.confidence.level), borderColor: levelColor(ev.confidence.level) }}>
@@ -102,43 +102,43 @@ export const AgentWorkflowPanel: React.FC<Props> = ({ investigation, events, nod
                 </span>
               )}
             </div>
-            <div className="text-[#8B949E]">{node.description}</div>
-            <div className="flex flex-wrap gap-3 font-mono text-[9px] text-[#8B949E]">
+            <div className="text-muted">{node.description}</div>
+            <div className="flex flex-wrap gap-3 font-mono text-[9px] text-muted">
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />started {startedAt.get(node.id)?.slice(11, 23) ?? "—"}</span>
               <span>ended {ev && ev.status !== "running" ? ev.at.slice(11, 23) : "—"}</span>
               {ev?.duration_ms !== undefined && <span>{ev.duration_ms.toFixed(2)} ms</span>}
               {node.requires.length > 0 && <span>requires: {node.requires.join(", ")}</span>}
             </div>
-            {ev?.summary && <div className="text-[#C9D1D9] bg-[#161B22] border border-[#30363D] rounded p-2">{ev.summary}</div>}
-            {ev?.error && <div className="text-[#f85149] bg-[#f85149]/10 border border-[#f85149]/30 rounded p-2 font-mono">{ev.error}</div>}
-            {ev?.confidence && <div className="text-[10px] text-[#8B949E]">Confidence basis: {ev.confidence.basis}</div>}
+            {ev?.summary && <div className="text-ink bg-surface border border-line rounded p-2">{ev.summary}</div>}
+            {ev?.error && <div className="text-danger bg-danger-50 border border-danger/30 rounded p-2 font-mono">{ev.error}</div>}
+            {ev?.confidence && <div className="text-[10px] text-muted">Confidence basis: {ev.confidence.basis}</div>}
             {!!ev?.evidence?.length && (
               <div>
-                <div className="text-[9px] uppercase tracking-wider text-[#8B949E] mb-0.5">Evidence discovered</div>
-                <ul className="list-disc list-inside space-y-0.5 text-[#C9D1D9]">{ev.evidence.map((x, i) => <li key={i}>{x}</li>)}</ul>
+                <div className="text-[9px] uppercase tracking-wider text-muted mb-0.5">Evidence discovered</div>
+                <ul className="list-disc list-inside space-y-0.5 text-ink">{ev.evidence.map((x, i) => <li key={i}>{x}</li>)}</ul>
               </div>
             )}
             {!!ev?.warnings?.length && (
               <div>
-                <div className="text-[9px] uppercase tracking-wider text-[#d29922] mb-0.5">Warnings</div>
-                <ul className="list-disc list-inside space-y-0.5 text-[#d29922]">{ev.warnings.map((x, i) => <li key={i}>{x}</li>)}</ul>
+                <div className="text-[9px] uppercase tracking-wider text-warn mb-0.5">Warnings</div>
+                <ul className="list-disc list-inside space-y-0.5 text-warn">{ev.warnings.map((x, i) => <li key={i}>{x}</li>)}</ul>
               </div>
             )}
             {!!ev?.data_sources?.length && (
               <div className="flex flex-wrap gap-1 items-center">
-                <Database className="w-3 h-3 text-[#8B949E]" />
-                {ev.data_sources.map((d, i) => <span key={i} className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-[#21262D] text-[#8B949E]">{d}</span>)}
+                <Database className="w-3 h-3 text-muted" />
+                {ev.data_sources.map((d, i) => <span key={i} className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-subtle text-muted">{d}</span>)}
               </div>
             )}
           </>
         )}
       </div>
 
-      <div className="w-[300px] shrink-0 border-l border-[#30363D] overflow-y-auto p-3 hidden xl:block">
-        <div className="text-[9px] uppercase tracking-wider text-[#8B949E] mb-1">Final reasoning summary</div>
-        {investigation.status === "running" && <div className="text-[#8B949E] italic">Investigation in progress…</div>}
-        <ol className="space-y-1 list-decimal list-inside text-[10px] text-[#C9D1D9]">
-          {summaries.map((e) => <li key={e.seq}><span className="text-[#79C0FF]">{e.label}:</span> {e.summary}</li>)}
+      <div className="w-[300px] shrink-0 border-l border-line overflow-y-auto p-3 hidden xl:block">
+        <div className="text-[9px] uppercase tracking-wider text-muted mb-1">Final reasoning summary</div>
+        {investigation.status === "running" && <div className="text-muted italic">Investigation in progress…</div>}
+        <ol className="space-y-1 list-decimal list-inside text-[10px] text-ink">
+          {summaries.map((e) => <li key={e.seq}><span className="text-navy-600">{e.label}:</span> {e.summary}</li>)}
         </ol>
       </div>
     </div>

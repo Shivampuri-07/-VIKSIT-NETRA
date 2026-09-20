@@ -57,6 +57,33 @@ docker compose --profile api up --build   # also the optional FastAPI service on
 The image build fails if a required runtime file is missing (`scripts/check-runtime-files.mjs --build`).
 The container runs as the unprivileged `node` user on Node 22.
 
+## Public judge demonstration (Render Free) — ACTIVE TARGET
+
+One free Render web service, built from this repository's `Dockerfile`, configured by `render.yaml`.
+Full instructions and the judge checklist: **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)**.
+
+```bash
+git add -A && git commit -m "Deploy VIKSIT-NETRA demo to Render Free" && git push origin main
+# then: Render dashboard -> New -> Blueprint -> select this repo -> Apply
+```
+
+Render Free is **512 MB RAM / 0.1 CPU**. Measured here: a complete investigation peaks at **127 MB**
+and finishes in **0.8 s** locally, so the whole workflow runs live. Full-scene U-Net inference peaks
+at **1.05 GB**, which does not fit, so the image defaults to `WITH_MODEL_RUNTIME=false`: the
+segmentation is served from the bundled precomputed `MODEL_PREDICTION` (labelled as such) and
+"Verify detection" honestly reports that live re-inference is unavailable rather than faking one.
+Free instances sleep after 15 minutes idle; the next request takes ~30-60 s. No keep-alive hack is
+included by design — warm the URL yourself before a demonstration.
+
+To restore live inference, deploy the same image to any host with >= 2 GB RAM built with
+`--build-arg WITH_MODEL_RUNTIME=true`. No application code changes.
+
+## Archived: Google Cloud Run (deprecated)
+
+`scripts/deploy-cloudrun.sh` and `.gcloudignore` are kept as a reference for a >= 2 GB deployment.
+The script refuses to run unless you set `VIKSIT_ALLOW_GCP=1`. Cloud Run requires a billing account,
+which is why it is no longer the target. **Do not follow this path for the SIH demonstration.**
+
 ## Cloud (Procfile)
 `web: node dist-server/server.cjs`. Use a **Node** buildpack/runtime (the repository also contains
 `requirements.txt`; select Node explicitly), build command `npm ci && npm run build`, and let the platform

@@ -1,87 +1,259 @@
 @import "tailwindcss";
 
+/* =============================================================================
+   VIKSIT-NETRA design tokens — light institutional theme.
+   Colour carries meaning; the surrounding UI stays calm because the map is the
+   information-dense surface. Every status is also labelled in text, never by
+   colour alone.
+   ========================================================================== */
+@theme {
+  /* surfaces */
+  --color-canvas: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-subtle: #f2f4f7;
+  --color-line: #e5e7eb;
+  --color-line-strong: #d0d5dd;
+
+  /* type */
+  --color-ink: #17202a;
+  --color-ink-soft: #3d4653;
+  --color-muted: #667085;
+  --color-faint: #98a2b3;
+
+  /* brand */
+  --color-navy: #173b63;
+  --color-navy-600: #1e4e82;
+  --color-navy-50: #eef3f9;
+  --color-teal: #2c7a7b;
+  --color-teal-50: #eef6f6;
+  --color-saffron: #c77700;
+  --color-saffron-50: #fdf5e9;
+
+  /* status */
+  --color-ok: #16803a;
+  --color-ok-50: #eef7f0;
+  --color-warn: #b7791f;
+  --color-warn-50: #fdf6e8;
+  --color-danger: #c53030;
+  --color-danger-50: #fdefef;
+  --color-info: #1e4e82;
+  --color-info-50: #eef3f9;
+
+  /* map data colours (readable on a light basemap) */
+  --color-map-spill: #c5303a;
+  --color-map-backtrack: #0e7490;
+  --color-map-origin: #1e4e82;
+  --color-map-wind: #b7791f;
+  --color-map-current: #2c7a7b;
+  --color-map-vessel: #c53030;
+  --color-map-selected: #16803a;
+
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-card: 12px;
+}
+
 @layer base {
   :root {
-    --bg: #0D1117;
-    --surface: #161B22;
-    --surface-elevated: #21262D;
-    --border: #30363D;
-    --accent: #58A6FF;
-    --accent-hover: #79C0FF;
-    --text: #C9D1D9;
-    --text-dim: #8B949E;
-    --spill: #FF4444;
-    --origin: #79C0FF;
-    --vessel: #AFF5B4;
-    --vessel-dim: #238636;
-    --f-mono: 'Courier New', Courier, monospace;
-    --f-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
   }
 
   body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: var(--f-sans);
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible, consistent keyboard focus everywhere (accessibility). */
+  :where(button, a, select, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-navy-600);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
-/* Geometric Dot Grid Pattern */
-.bg-dot-grid {
-  background-image: radial-gradient(#30363D 1px, transparent 1px);
-  background-size: 32px 32px;
+@layer components {
+  /* Card: white surface, thin border, soft shadow. */
+  .vn-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  }
+
+  /* Floating control over the map. */
+  .vn-float {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+  }
+
+  /* Small uppercase category label. */
+  .vn-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .vn-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Buttons */
+  .vn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .vn-btn:hover:not(:disabled) {
+    background: var(--color-subtle);
+    border-color: var(--color-muted);
+  }
+  .vn-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .vn-btn-primary {
+    background: var(--color-navy);
+    border-color: var(--color-navy);
+    color: #fff;
+  }
+  .vn-btn-primary:hover:not(:disabled) {
+    background: var(--color-navy-600);
+    border-color: var(--color-navy-600);
+  }
+
+  /* Progressive-disclosure block: <details> styled as a quiet inline expander. */
+  .vn-details > summary {
+    cursor: pointer;
+    color: var(--color-navy-600);
+    font-size: 12px;
+    font-weight: 500;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .vn-details > summary::-webkit-details-marker {
+    display: none;
+  }
+  .vn-details > summary:hover {
+    text-decoration: underline;
+  }
+  .vn-details[open] > summary {
+    margin-bottom: 6px;
+  }
 }
 
-/* Leaflet Dark Custom Tooltips & Popups */
+/* Leaflet surfaces, restyled for the light theme.
+   The class name is historical (used by GisMap tooltips); the styling is light. */
 .leaflet-dark-tooltip {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
-  border: 1px solid #30363D !important;
-  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  color: #17202a !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
   padding: 6px 10px !important;
-  font-family: var(--f-sans) !important;
+  font-family: var(--font-sans) !important;
   font-size: 11px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.12) !important;
 }
 
 .leaflet-dark-tooltip::before {
-  border-top-color: #30363D !important;
+  border-top-color: #e5e7eb !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #161B22 !important;
-  color: #C9D1D9 !important;
-  border: 1px solid #30363D !important;
-  border-radius: 6px !important;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+  background: #ffffff !important;
+  color: #17202a !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14) !important;
 }
 
 .leaflet-popup-tip {
-  background: #161B22 !important;
+  background: #ffffff !important;
 }
 
 .leaflet-popup-content {
   margin: 10px 12px !important;
-  line-height: 1.4 !important;
+  line-height: 1.45 !important;
+  font-size: 11px !important;
 }
 
-/* Custom Scrollbars */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #eaeef2;
+}
+
+.leaflet-bar a,
+.leaflet-control-zoom a {
+  color: #17202a !important;
+  border-color: #e5e7eb !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85) !important;
+  font-size: 10px !important;
+  color: #667085 !important;
+}
+
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0D1117;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363D;
-  border-radius: 3px;
+  background: #d0d5dd;
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #484F58;
+  background: #98a2b3;
+  background-clip: content-box;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
