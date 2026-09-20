@@ -1,3 +1,8 @@
+> **DEPRECATED — not the deployment target.** Northflank requires a payment method on file
+> before any service can be created (verified: `HTTP 409 "Please complete your account by
+> adding a default payment method"`), even though its Sandbox plan is $0/month.
+> The active target is **Back4App Containers**: see **[BACK4APP_DEPLOYMENT.md](BACK4APP_DEPLOYMENT.md)**.
+
 # VIKSIT-NETRA — Northflank free deployment (ACTIVE TARGET)
 
 **Team:** Viksit Tech · **Target:** one free Northflank Sandbox service, public HTTPS URL, no credit card.

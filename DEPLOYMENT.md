@@ -57,22 +57,31 @@ docker compose --profile api up --build   # also the optional FastAPI service on
 The image build fails if a required runtime file is missing (`scripts/check-runtime-files.mjs --build`).
 The container runs as the unprivileged `node` user on Node 22.
 
-## Public judge demonstration (Northflank free Sandbox) — ACTIVE TARGET
+## Public judge demonstration (Back4App Containers) — ACTIVE TARGET
 
-One free Northflank Sandbox service, built from this repository's existing `Dockerfile`.
-Full instructions and the judge checklist: **[NORTHFLANK_DEPLOYMENT.md](NORTHFLANK_DEPLOYMENT.md)**.
+Free Back4App Container, **no credit card**, built from this repository's existing `Dockerfile`.
+Full instructions and the judge checklist: **[BACK4APP_DEPLOYMENT.md](BACK4APP_DEPLOYMENT.md)**.
 
-Northflank was chosen after re-verifying free-tier policies in September 2026: Hugging Face now
-requires a paid plan for Docker Spaces, Fly.io requires a card, Koyeb closed its free tier to new
-signups, and Railway's free plan is a $1/month credit. Northflank's Sandbox is permanently free,
-needs no card, and **does not sleep**.
+Chosen after re-verifying free-tier policies in September 2026. Hugging Face now requires a paid plan
+for Docker Spaces; Fly.io requires a card; Koyeb closed its free tier to new signups; Railway's free
+plan is a $1/month credit; and Northflank — although its Sandbox plan is $0/month — rejected service
+creation with `HTTP 409 "Please complete your account by adding a default payment method"`. Back4App
+Containers deploys a Dockerised app free with no card: 256 MB RAM, 600 active hours/month.
 
-Measured here: a complete investigation peaks at **132 MB** (three back-to-back runs, no OOM under a
-192 MB heap cap), so the whole workflow runs live. Full-scene U-Net inference peaks at **1.05 GB**,
-which no free tier provides, so the image defaults to `WITH_MODEL_RUNTIME=false`: the segmentation is
-served from the bundled precomputed `MODEL_PREDICTION` (labelled as such) and "Verify detection"
-honestly reports that live re-inference is unavailable rather than faking one. To restore it, build
-with `--build-arg WITH_MODEL_RUNTIME=true` on a host with >= 2 GB RAM. No application code changes.
+No Dockerfile changes were needed: the image already exposes a TCP port, honours an injected `PORT`
+(verified with `PORT=7777` returning health 200) and binds `0.0.0.0`.
+
+Measured: three back-to-back investigations peak at **132 MB** with no OOM under a 192 MB heap cap,
+so the whole workflow runs live in 256 MB. Full-scene U-Net inference peaks at **1.05 GB**, which no
+free tier provides, so the image keeps `WITH_MODEL_RUNTIME=false`: the segmentation is the bundled
+precomputed `MODEL_PREDICTION` (labelled as such) and "Verify detection" honestly reports that live
+re-inference is unavailable rather than faking one. To restore it, build with
+`--build-arg WITH_MODEL_RUNTIME=true` on a host with >= 2 GB RAM. No application code changes.
+
+## Archived: Northflank (deprecated)
+
+`NORTHFLANK_DEPLOYMENT.md` is kept for reference. Northflank's Sandbox is $0/month but requires a
+payment method on file before any service can be created, which ruled it out for this project.
 
 ## Archived: Render (deprecated)
 

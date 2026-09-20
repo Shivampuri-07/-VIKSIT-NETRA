@@ -1,0 +1,178 @@
+# VIKSIT-NETRA — Back4App Containers deployment (ACTIVE TARGET)
+
+**Team:** Viksit Tech · **Target:** free Back4App Container, public HTTPS URL, **no credit card**.
+
+Deprecated, kept for reference only and unused by the application:
+`NORTHFLANK_DEPLOYMENT.md`, `RENDER_DEPLOYMENT.md` + `render.yaml`,
+`scripts/deploy-cloudrun.sh` + `.gcloudignore`.
+
+---
+
+## Why Back4App
+
+Free hosting was re-verified in September 2026, because these policies change often. Two findings
+forced the choice:
+
+| Platform | Genuinely free? | Card required? | Outcome |
+| --- | --- | --- | --- |
+| Hugging Face Spaces (Docker) | **No** — PRO plan required to create | — | Ruled out |
+| Fly.io | **No** | Yes | Ruled out |
+| Koyeb | Free tier **closed to new signups** | — | Ruled out |
+| Railway | Free plan = **$1/month credit** | No | Cannot sustain 24/7 |
+| Clever Cloud | Trial credits only | No | Not permanent |
+| Zeabur | Free plan manages **your own** hardware | — | No hosted compute |
+| Northflank Sandbox | $0/month, but… | **YES** — verified by API rejection | Ruled out |
+| Render | Yes, 512 MB, sleeps 15 min | No | Excluded by project decision |
+| **Back4App Containers** | **Yes** — 256 MB, 600 active h/month | **No** | **Selected** |
+
+Northflank was attempted first and rejected the service creation with
+`HTTP 409 — "Please complete your account by adding a default payment method."` Their documentation
+confirms it: *"all users must add a payment method to start creating resources on Northflank,
+regardless of plan selection."* Back4App states the opposite for its free tier: deploy a Dockerised
+project *"at no charge with no credit card required."*
+
+## Fit against the free limits
+
+Measured on this project, not estimated:
+
+| Workload | Measured | Fits 256 MB? |
+| --- | --- | --- |
+| Express server, idle | ~80 MB RSS | Yes |
+| **3 back-to-back complete investigations** | **132 MB peak RSS, no OOM** | **Yes** (~50 % headroom) |
+| Full-scene live U-Net inference | **1.05 GB peak RSS, 25.9 s** | **No** |
+
+**No free tier anywhere provides the ~1.05 GB live inference needs.** Therefore:
+
+* **Live, per request:** Lagrangian drift and backtracking, AIS track reconstruction and correlation,
+  candidate scoring, evidence fusion, counterfactual analysis, competing hypotheses, uncertainty,
+  risk, recommendations, analytics, PDF report generation, map layers, upload validation — all 12
+  nodes orchestrated by the real LangGraph `StateGraph`.
+* **Precomputed:** only the U-Net segmentation mask. It is the genuine frozen-checkpoint output on
+  the real Sentinel-1 raster, computed offline — not synthetic, not hand-drawn. The UI labels it
+  `PRECOMPUTED DEMO RESULT`.
+* **"Verify detection" is preserved, not removed.** On this tier it returns HTTP 503
+  `MODEL_RUNTIME_UNAVAILABLE` with a plain explanation instead of running. It never presents
+  precomputed output as live inference.
+
+To restore live inference later, deploy the same image to any host with ≥ 2 GB RAM built with
+`--build-arg WITH_MODEL_RUNTIME=true`. No application code changes.
+
+## Compatibility: no Dockerfile changes were needed
+
+Back4App requires a Dockerfile in the root directory, a Dockerfile that `EXPOSE`s a TCP port, and an
+app that listens on the injected `PORT`. All three were already true and were verified:
+
+| Requirement | Status |
+| --- | --- |
+| `Dockerfile` in repo root | Present |
+| Dockerfile exposes a TCP port | `EXPOSE 3000` |
+| App listens on injected `PORT` | `const PORT = Number(process.env.PORT \|\| 3000)` — tested with `PORT=7777`, health returned 200 |
+| Binds all interfaces | `HOST \|\| "0.0.0.0"` — verified listening on `*:7777` |
+| Env var names uppercase/underscore | `NODE_ENV`, `AEGIS_MAX_CONCURRENT_JOBS`, `AEGIS_UPLOAD_DIR` |
+
+---
+
+## Deployment steps
+
+The code is already pushed. Back4App Containers has no public deployment API, so these steps are
+done in their dashboard.
+
+### 1. Sign up
+<https://www.back4app.com/signup-containers> — sign up **with GitHub**. No credit card is requested
+for the free Containers plan.
+
+### 2. Create the container app
+**Containers → Deploy your app → Import a GitHub repository.** Authorise the Back4App GitHub app and
+grant access to `Shivampuri-07/-VIKSIT-NETRA`, then select that repository.
+
+### 3. Configure
+
+| Field | Value |
+| --- | --- |
+| App name | `viksit-netra` (becomes part of the public URL) |
+| Branch | `main` |
+| Root directory | `/` (leave default — the Dockerfile is at the repo root) |
+| Auto deploy | On (optional; redeploys on each push) |
+| Plan | **Free** |
+
+### 4. Environment variables
+
+**Required: none.** The demo is entirely self-contained — no API key, no database, no external
+service. **Do not paste any secret here.**
+
+Add these three only (all non-secret, and they satisfy Back4App's uppercase/underscore rule):
+
+| Key | Value | Purpose |
+| --- | --- | --- |
+| `NODE_ENV` | `production` | production mode |
+| `AEGIS_MAX_CONCURRENT_JOBS` | `1` | concurrent investigations before HTTP 429; suits a small shared vCPU |
+| `AEGIS_UPLOAD_DIR` | `/tmp/viksit-netra-uploads` | ephemeral upload scratch space |
+
+Do **not** set `PORT` — Back4App injects it and the server follows it.
+
+Leave unset, each has a working fallback: `COPERNICUS_*`, `CDS_API_KEY`, `AIS_DATA_DIR`,
+`DATABASE_URL`, `AEGIS_DATA_ROOT`, `CARTO_API_KEY` / `VITE_CARTO_API_KEY`. Without a CARTO key the
+map uses CARTO's public basemap, which is the intended free-tier behaviour.
+
+### 5. Deploy and watch the build
+
+First build takes roughly **5–15 minutes** (npm ci, Vite build, image assembly). In the build log,
+look for:
+
+```
+15/15 required files present; 6/6 optional.
+```
+
+That is `scripts/check-runtime-files.mjs --build`, which **fails the image build** if any runtime
+data file is missing — so a green build proves the demo data is really inside the image.
+
+Then in the *application* log, confirm the server reports its port:
+
+```
+ Server : http://localhost:<injected port>  (production)
+```
+
+### 6. Get the URL and verify
+
+Back4App issues `https://<app-name>-<subdomain>.b4a.run`. Check health before opening the UI:
+
+```bash
+curl https://<your-url>/api/health
+```
+
+Expect `"status":"healthy"`, `"model":"unet_oil_spill_best"`, `"available_scenes":4`, and
+`"model_runtime":{"available":false,...}` — that last field is **correct and expected** on a free
+instance, not a failure.
+
+### Sleep behaviour
+
+Free containers sleep when idle and wake on the next request, and the plan allows **600 active hours
+per month**. No keep-alive pinger has been added — that would abuse the free tier and burn the hour
+budget. **Open the URL yourself a few minutes before the judges do.**
+
+---
+
+## Judge checklist
+
+| # | Step | Expected |
+| --- | --- | --- |
+| 1 | Open the URL | VIKSIT-NETRA landing page, "Service ready" |
+| 2 | Read the landing page | Scenario, real data sources, live-vs-precomputed split, measured metrics |
+| 3 | Click **Launch Demo Investigation** | Workbench opens, investigation runs |
+| 4 | Map | Basemap, spill polygons, no blank tiles |
+| 5 | Spill geometry | 53.455 km², 9 polygons, `MODEL_PREDICTION` chip |
+| 6 | **Verify detection** | `PRECOMPUTED DEMO RESULT` + honest "not available in this deployment" |
+| 7 | Backtracking | 300-particle ensemble over 12 h, origin envelope |
+| 8 | Vessel tracks | Real AIS tracks (13,104 records, 56 vessels) |
+| 9 | Candidates | 87 candidates, 8 high priority, 7 medium |
+| 10 | Evidence | Per-factor breakdown, contradicting evidence, narrative |
+| 11 | Analytics | Charts render |
+| 12 | Hypotheses | 4 competing hypotheses |
+| 13 | Counterfactuals | Exclude-vessel and forcing-sensitivity run |
+| 14 | Forecast | 4 horizons (6/12/24/48 h) |
+| 15 | **Generate report** | PDF downloads, no local file paths inside |
+| 16 | Settings → **Reset demo** | Returns to landing page, state cleared |
+| 17 | Refresh browser | Workbench restored, no error |
+| 18 | New private window | Clean landing page, no inherited state |
+| 19 | `/api/health` | JSON, no secrets |
+| 20 | Phone / narrow window | Layout usable |
