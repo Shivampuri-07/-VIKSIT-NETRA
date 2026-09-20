@@ -1,3 +1,8 @@
+> **DEPRECATED — this is no longer the deployment target.**
+> The active target is **Northflank free Sandbox**: see **[NORTHFLANK_DEPLOYMENT.md](NORTHFLANK_DEPLOYMENT.md)**.
+> This file is kept for reference only. Everything below about *what runs live vs precomputed* still
+> applies, because Northflank's free tier has the same ~512 MB ceiling as Render's.
+
 # VIKSIT-NETRA — Render Free deployment
 
 **Team:** Viksit Tech · **Target:** one free Render web service, public HTTPS URL, no credit card.
@@ -163,13 +168,28 @@ Expect `"status":"healthy"`, `"model":"unet_oil_spill_best"`, `"available_scenes
 
 ---
 
-## Appendix: the free option that keeps live inference
+## Appendix: CORRECTION — Hugging Face Spaces is no longer free for Docker
 
-If the "Verify detection" live run matters for your presentation, **Hugging Face Spaces** has a free
-CPU tier with substantially more RAM than Render Free and does not ask for a card. It supports Docker
-directly, so the same image works — build it with `--build-arg WITH_MODEL_RUNTIME=true` and set the
-Space to listen on its expected port. Check the current free-tier specs on their pricing page before
-committing to it, since free-tier limits change.
+An earlier version of this document suggested Hugging Face Spaces as a free way to keep live
+inference. **That is now wrong and should not be followed.** Hugging Face's own documentation states
+that Gradio and Docker Spaces "require a paid plan to create: PRO for personal accounts, Team or
+Enterprise for organizations"; only Static Spaces remain free.
 
-This is offered only as an alternative; **Render Free as configured here is a complete, honest demo**
-of the whole investigation workflow.
+Platforms checked in September 2026, with the result:
+
+| Platform | Free? | RAM | Card | Note |
+| --- | --- | --- | --- | --- |
+| Hugging Face Spaces (Docker) | No | - | - | PRO plan required to create |
+| Fly.io | No | - | Required | "All organizations require a credit card on file" |
+| Koyeb | Closed to new users | 512 MB | - | Free tier shut to new signups |
+| Railway | $1/month credit | - | No | Will not sustain a 24/7 service |
+| Clever Cloud | Trial credits only | - | No | Not a permanent free tier |
+| Zeabur | Free plan manages your OWN hardware | - | - | No hosted compute |
+| Back4App Containers | Yes | 256 MB, 600 h/month | No | Fits, but offline ~5 days/month |
+| Render | Yes | 512 MB, sleeps 15 min | No | Works; excluded by project decision |
+| **Northflank Sandbox** | **Yes, permanent** | ~512 MB | **No** | **Selected — and does not sleep** |
+
+**No free tier anywhere offers the ~1.05 GB that full-scene live inference needs.** Live re-inference
+therefore requires either Oracle Cloud Always Free (card needed for identity verification, ARM64,
+manual VM setup) or a paid instance of about $5-7/month with 2 GB. The application itself needs no
+change for either: build with `--build-arg WITH_MODEL_RUNTIME=true`.

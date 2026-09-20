@@ -1,3 +1,7 @@
+# DEPRECATED - Render is no longer the deployment target for this project.
+# Active target: Northflank free Sandbox (see NORTHFLANK_DEPLOYMENT.md).
+# This file is kept and remains valid if you ever choose to deploy on Render.
+#
 # Render Blueprint — VIKSIT-NETRA public demonstration (Viksit Tech)
 #
 # ONE free web service. No database, no Redis, no worker, no paid add-on: the investigation engine

@@ -57,26 +57,27 @@ docker compose --profile api up --build   # also the optional FastAPI service on
 The image build fails if a required runtime file is missing (`scripts/check-runtime-files.mjs --build`).
 The container runs as the unprivileged `node` user on Node 22.
 
-## Public judge demonstration (Render Free) — ACTIVE TARGET
+## Public judge demonstration (Northflank free Sandbox) — ACTIVE TARGET
 
-One free Render web service, built from this repository's `Dockerfile`, configured by `render.yaml`.
-Full instructions and the judge checklist: **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)**.
+One free Northflank Sandbox service, built from this repository's existing `Dockerfile`.
+Full instructions and the judge checklist: **[NORTHFLANK_DEPLOYMENT.md](NORTHFLANK_DEPLOYMENT.md)**.
 
-```bash
-git add -A && git commit -m "Deploy VIKSIT-NETRA demo to Render Free" && git push origin main
-# then: Render dashboard -> New -> Blueprint -> select this repo -> Apply
-```
+Northflank was chosen after re-verifying free-tier policies in September 2026: Hugging Face now
+requires a paid plan for Docker Spaces, Fly.io requires a card, Koyeb closed its free tier to new
+signups, and Railway's free plan is a $1/month credit. Northflank's Sandbox is permanently free,
+needs no card, and **does not sleep**.
 
-Render Free is **512 MB RAM / 0.1 CPU**. Measured here: a complete investigation peaks at **127 MB**
-and finishes in **0.8 s** locally, so the whole workflow runs live. Full-scene U-Net inference peaks
-at **1.05 GB**, which does not fit, so the image defaults to `WITH_MODEL_RUNTIME=false`: the
-segmentation is served from the bundled precomputed `MODEL_PREDICTION` (labelled as such) and
-"Verify detection" honestly reports that live re-inference is unavailable rather than faking one.
-Free instances sleep after 15 minutes idle; the next request takes ~30-60 s. No keep-alive hack is
-included by design — warm the URL yourself before a demonstration.
+Measured here: a complete investigation peaks at **132 MB** (three back-to-back runs, no OOM under a
+192 MB heap cap), so the whole workflow runs live. Full-scene U-Net inference peaks at **1.05 GB**,
+which no free tier provides, so the image defaults to `WITH_MODEL_RUNTIME=false`: the segmentation is
+served from the bundled precomputed `MODEL_PREDICTION` (labelled as such) and "Verify detection"
+honestly reports that live re-inference is unavailable rather than faking one. To restore it, build
+with `--build-arg WITH_MODEL_RUNTIME=true` on a host with >= 2 GB RAM. No application code changes.
 
-To restore live inference, deploy the same image to any host with >= 2 GB RAM built with
-`--build-arg WITH_MODEL_RUNTIME=true`. No application code changes.
+## Archived: Render (deprecated)
+
+`render.yaml` and `RENDER_DEPLOYMENT.md` are kept and remain valid, but Render is no longer the
+target. Its free tier also sleeps after 15 minutes idle, which Northflank's does not.
 
 ## Archived: Google Cloud Run (deprecated)
 
