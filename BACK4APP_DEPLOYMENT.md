@@ -23,7 +23,7 @@ forced the choice:
 | Zeabur | Free plan manages **your own** hardware | — | No hosted compute |
 | Northflank Sandbox | $0/month, but… | **YES** — verified by API rejection | Ruled out |
 | Render | Yes, 512 MB, sleeps 15 min | No | Excluded by project decision |
-| **Back4App Containers** | **Yes** — 256 MB, 600 active h/month | **No** | **Selected** |
+| **Back4App Containers** | **Yes** — 0.25 CPU, 256 MB, 100 GB transfer | **No** | **Selected** |
 
 Northflank was attempted first and rejected the service creation with
 `HTTP 409 — "Please complete your account by adding a default payment method."` Their documentation
@@ -144,11 +144,37 @@ Expect `"status":"healthy"`, `"model":"unet_oil_spill_best"`, `"available_scenes
 `"model_runtime":{"available":false,...}` — that last field is **correct and expected** on a free
 instance, not a failure.
 
-### Sleep behaviour
+### Sleep and cold starts (measured, not assumed)
 
-Free containers sleep when idle and wake on the next request, and the plan allows **600 active hours
-per month**. No keep-alive pinger has been added — that would abuse the free tier and burn the hour
-budget. **Open the URL yourself a few minutes before the judges do.**
+Free containers sleep when idle and wake on the next request. **Measured on this deployment:**
+
+| Situation | Time to first byte |
+| --- | --- |
+| After ~20 minutes idle | **4.9 s**, then 3.3 s, then 0.59 s |
+| After a long gap (worst seen) | **14.2 s** |
+
+A visitor arriving unannounced therefore sees a short load, not a dead site.
+
+**Sleep cannot be disabled on the free plan** — always-on requires a paid tier. **No keep-alive
+pinger has been added, and none should be**: it is fake traffic, it consumes the free allowance, and
+the measured wake time does not justify it.
+
+Back4App Containers plans (from their pricing page, September 2026). Investigation times are linear
+extrapolations from the measured 0.25-CPU result, so treat them as directional:
+
+| Plan | CPU | RAM | Price | Investigation (est.) | Live inference? |
+| --- | --- | --- | --- | --- | --- |
+| **Free** (this deployment) | 0.25 | 256 MB | **$0** | ~85 s measured | No |
+| Shared | 0.5 | 512 MB | $5/mo | ~45 s | No |
+| Shared 2 | 1 | 1 GB | $15/mo | ~21 s | No |
+| Shared 3 | 1 | **2 GB** | $25/mo | ~21 s | **Yes** — clears the 1.05 GB measured peak |
+
+Only Shared 3 has enough RAM to enable live re-inference; it would need the image rebuilt with
+`--build-arg WITH_MODEL_RUNTIME=true`.
+
+Note on an earlier figure: a "600 active hours/month" limit appeared in third-party write-ups and was
+repeated here. **Back4App's own pricing page does not state an hours limit** for the free plan, only
+0.25 CPU / 256 MB / 100 GB transfer, so that number is unverified and has been removed.
 
 ---
 
