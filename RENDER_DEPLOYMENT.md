@@ -1,14 +1,21 @@
-> **DEPRECATED — this is no longer the deployment target.**
-> The active target is **Northflank free Sandbox**: see **[NORTHFLANK_DEPLOYMENT.md](NORTHFLANK_DEPLOYMENT.md)**.
-> This file is kept for reference only. Everything below about *what runs live vs precomputed* still
-> applies, because Northflank's free tier has the same ~512 MB ceiling as Render's.
+> **ACTIVE DEPLOYMENT TARGET.**
+> Render free is the only free tier that **wakes on request** after idling, so the URL is reachable
+> whenever a judge happens to open it. Back4App free was deployed and measured: its container
+> **stops after 60 minutes per deploy and never restarts on its own** — requests return
+> `404 not found` until someone redeploys by hand. Northflank requires a payment method.
+> See [BACK4APP_DEPLOYMENT.md](BACK4APP_DEPLOYMENT.md) for that evidence.
 
 # VIKSIT-NETRA — Render Free deployment
 
 **Team:** Viksit Tech · **Target:** one free Render web service, public HTTPS URL, no credit card.
 
-This is the **active** deployment path. The Google Cloud Run files (`scripts/deploy-cloudrun.sh`,
-`.gcloudignore`) are kept only as an archived reference for a ≥ 2 GB host and are disabled by default.
+This is the **active** deployment path. Deprecated and kept for reference only:
+`BACK4APP_DEPLOYMENT.md`, `NORTHFLANK_DEPLOYMENT.md`, `scripts/deploy-cloudrun.sh` + `.gcloudignore`.
+
+**Why the sleep is acceptable here:** a free Render instance spins down after 15 minutes idle, but the
+next request **wakes it automatically** in about 30–60 seconds while Render shows its own loading
+page. The visitor always reaches the app. That is the decisive difference from Back4App free, which
+simply stops.
 
 ---
 

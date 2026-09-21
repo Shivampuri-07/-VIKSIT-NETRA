@@ -1,3 +1,17 @@
+> **DEPRECATED — do not use this path.**
+>
+> Back4App's free plan **stops the container 60 minutes after each deploy and never restarts it**.
+> Measured on the live deployment: serving normally 18:45–19:13, `404 not found` by 19:31, still
+> `404` 25 minutes later, and repeated requests did **not** wake it. Back4App's own template repo
+> states it plainly: *"On the free plan the container lives 60 minutes per deploy."*
+>
+> That makes it unusable when you cannot predict when someone will visit: they get a dead link, not a
+> slow one. The active target is **Render free**, which sleeps but **wakes on request**:
+> see **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)**.
+>
+> Everything below about *what runs live vs precomputed*, the measured memory figures and the judge
+> checklist remains accurate and applies to any host.
+
 # VIKSIT-NETRA — Back4App Containers deployment (ACTIVE TARGET)
 
 **Team:** Viksit Tech · **Target:** free Back4App Container, public HTTPS URL, **no credit card**.

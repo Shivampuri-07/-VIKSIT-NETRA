@@ -1,6 +1,6 @@
-# DEPRECATED - Render is no longer the deployment target for this project.
-# Active target: Northflank free Sandbox (see NORTHFLANK_DEPLOYMENT.md).
-# This file is kept and remains valid if you ever choose to deploy on Render.
+# ACTIVE DEPLOYMENT TARGET - see RENDER_DEPLOYMENT.md.
+# Chosen because Render free is the only free tier that WAKES ON REQUEST after idling.
+# Back4App free was tried and stops permanently after 60 minutes per deploy.
 #
 # Render Blueprint — VIKSIT-NETRA public demonstration (Viksit Tech)
 #

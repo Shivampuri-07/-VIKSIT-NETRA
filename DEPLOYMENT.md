@@ -57,36 +57,47 @@ docker compose --profile api up --build   # also the optional FastAPI service on
 The image build fails if a required runtime file is missing (`scripts/check-runtime-files.mjs --build`).
 The container runs as the unprivileged `node` user on Node 22.
 
-## Public judge demonstration (Back4App Containers) — ACTIVE TARGET
+## Public judge demonstration (Render Free) — ACTIVE TARGET
 
-Free Back4App Container, **no credit card**, built from this repository's existing `Dockerfile`.
-Full instructions and the judge checklist: **[BACK4APP_DEPLOYMENT.md](BACK4APP_DEPLOYMENT.md)**.
+One free Render web service, built from this repository's existing `Dockerfile` and configured by
+`render.yaml`. Full instructions and the judge checklist: **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)**.
 
-Chosen after re-verifying free-tier policies in September 2026. Hugging Face now requires a paid plan
-for Docker Spaces; Fly.io requires a card; Koyeb closed its free tier to new signups; Railway's free
-plan is a $1/month credit; and Northflank — although its Sandbox plan is $0/month — rejected service
-creation with `HTTP 409 "Please complete your account by adding a default payment method"`. Back4App
-Containers deploys a Dockerised app free with no card: 256 MB RAM, 600 active hours/month.
+```bash
+git push origin main
+# then: Render dashboard -> New -> Blueprint -> select this repo -> Apply
+```
 
-No Dockerfile changes were needed: the image already exposes a TCP port, honours an injected `PORT`
-(verified with `PORT=7777` returning health 200) and binds `0.0.0.0`.
+**Why Render, decided on measured behaviour.** The requirement is that a judge can open the URL at an
+unpredictable time. Only one property matters for that: does an idle service come back by itself?
 
-Measured: three back-to-back investigations peak at **132 MB** with no OOM under a 192 MB heap cap,
-so the whole workflow runs live in 256 MB. Full-scene U-Net inference peaks at **1.05 GB**, which no
-free tier provides, so the image keeps `WITH_MODEL_RUNTIME=false`: the segmentation is the bundled
-precomputed `MODEL_PREDICTION` (labelled as such) and "Verify detection" honestly reports that live
-re-inference is unavailable rather than faking one. To restore it, build with
-`--build-arg WITH_MODEL_RUNTIME=true` on a host with >= 2 GB RAM. No application code changes.
+| Platform | Idle behaviour | Reachable at a random time |
+|---|---|---|
+| **Render free** | sleeps after 15 min, **wakes on request in ~30-60 s** | **Yes** |
+| Back4App free | **stops 60 min after each deploy, never restarts** | No - `404` until redeployed |
+| Northflank Sandbox | n/a - payment method required to create any service | n/a |
+| Hugging Face Docker Spaces | n/a - paid plan required to create | n/a |
+
+Back4App was deployed and measured before this conclusion: it served correctly from 18:45 to 19:13 on
+20 Sep 2026, returned `404 not found` by 19:31, and was still dead 25 minutes later with requests
+failing to wake it. Back4App's own template repository states "on the free plan the container lives
+60 minutes per deploy".
+
+Render free is 512 MB / 0.1 CPU. Measured: three back-to-back investigations peak at **132 MB** with
+no OOM under a 192 MB heap cap, so the whole workflow runs live. Full-scene U-Net inference peaks at
+**1.05 GB**, which no free tier provides, so the image keeps `WITH_MODEL_RUNTIME=false`: the
+segmentation is the bundled precomputed `MODEL_PREDICTION` (labelled as such) and "Verify detection"
+honestly reports that live re-inference is unavailable rather than faking one. To restore it, build
+with `--build-arg WITH_MODEL_RUNTIME=true` on a host with >= 2 GB RAM. No application code changes.
+
+## Archived: Back4App Containers (deprecated)
+
+`BACK4APP_DEPLOYMENT.md` is kept for reference and its measured figures remain accurate. The free
+plan stops the container 60 minutes after each deploy and does not restart it, which rules it out.
 
 ## Archived: Northflank (deprecated)
 
 `NORTHFLANK_DEPLOYMENT.md` is kept for reference. Northflank's Sandbox is $0/month but requires a
 payment method on file before any service can be created, which ruled it out for this project.
-
-## Archived: Render (deprecated)
-
-`render.yaml` and `RENDER_DEPLOYMENT.md` are kept and remain valid, but Render is no longer the
-target. Its free tier also sleeps after 15 minutes idle, which Northflank's does not.
 
 ## Archived: Google Cloud Run (deprecated)
 
